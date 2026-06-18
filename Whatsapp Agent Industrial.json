@@ -1,0 +1,2066 @@
+{
+  "name": "Whatsapp Agent Industrial",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9ecde5ad-f840-40e1-b4d7-59423b7f3846",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "15ee9631-4267-4075-a37a-d360b659aa46",
+      "name": "Webhook Wasender",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -3072,
+        2512
+      ],
+      "typeVersion": 2.1,
+      "webhookId": "9ecde5ad-f840-40e1-b4d7-59423b7f3846"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "458b218b-f064-4570-9470-fd7b7d273770",
+              "name": "from_me",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.key.fromMe }}",
+              "type": "boolean"
+            },
+            {
+              "id": "cefd49d6-7ae0-48b2-978f-633f3a4f1ab8",
+              "name": "tiemstamp",
+              "value": "={{ $('Webhook Wasender').item.json.body.timestamp }}",
+              "type": "number"
+            },
+            {
+              "id": "e49b216e-5b67-4e45-9893-dbd823ef43ec",
+              "name": "message",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.messageBody }}",
+              "type": "string"
+            },
+            {
+              "id": "9dc855ea-d692-4ca8-b87b-a12a0ce77f20",
+              "name": "phone",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.key.cleanedSenderPn }}",
+              "type": "string"
+            },
+            {
+              "id": "807bfa34-ab80-4568-ba61-04ad4e509ecf",
+              "name": "sender_pn",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.key.senderPn }}",
+              "type": "string"
+            },
+            {
+              "id": "ad246abb-935c-4720-89e9-6d0320da1793",
+              "name": "push_name",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.pushName }}",
+              "type": "string"
+            },
+            {
+              "id": "c9bef274-090d-482a-92e9-76a2bc4c3262",
+              "name": "execution_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2d4ccd84-c62a-4955-8e97-ae4106c4c91b",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -2864,
+        2144
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=buffer_industrial:{{ $('Normalize').item.json.phone }}",
+        "messageData": "={{ JSON.stringify({\n  text: $json.message,\n  timestamp: $json.tiemstamp\n}) }}",
+        "tail": "={{ false }}"
+      },
+      "id": "59506939-2c42-4e02-9829-6801b8e23069",
+      "name": "Redis Buffer Push",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -2192,
+        2144
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "1CBn3T8oOgthjKY8",
+          "name": "Redis account Krak"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 4
+      },
+      "name": "Wait Buffer",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -1968,
+        2144
+      ],
+      "id": "e445c340-343b-43d9-9ad2-73aa9d87c8d8",
+      "typeVersion": 1.1,
+      "webhookId": "4ba4cc51-3049-408e-9c39-9d713d68f175"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "=messages",
+        "key": "=buffer_industrial:{{ $('Normalize').item.json.phone }}",
+        "options": {}
+      },
+      "name": "Get Buffer",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -880,
+        2160
+      ],
+      "id": "124ecce2-2c92-4039-8214-de8b8d2e7533",
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "1CBn3T8oOgthjKY8",
+          "name": "Redis account Krak"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=buffer_industrial:{{ $('Normalize').first().json.phone }}"
+      },
+      "name": "Clear Buffer",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        448,
+        2176
+      ],
+      "id": "4737c3c6-80f1-4c02-969d-1fd396268bd2",
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "1CBn3T8oOgthjKY8",
+          "name": "Redis account Krak"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Agentes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Vertical",
+              "lookupValue": "Industrial"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Advisors",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        1744,
+        1232
+      ],
+      "id": "b7513cb8-e334-48d7-8318-7b666cf512f1",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Code in JavaScript').item.json.agente[\"Teléfono\"] }}@s.whatsapp.net"
+            },
+            {
+              "name": "text",
+              "value": "=Nuevo contacto:\nNombre:{{\n $('Code in JavaScript').item.json.lead_data.nombre\n}}\nTeléfono: {{ $('Code in JavaScript').item.json.lead_data.telefono }}\nMotivo: {{ $('Code in JavaScript').item.json.lead_data.motivo }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Notify Advisor",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        3104,
+        1200
+      ],
+      "id": "abc8eaf3-3f2c-42e6-baeb-cc9bd6b005f9",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 359924819,
+          "mode": "list",
+          "cachedResultName": "Leads Principal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit#gid=359924819"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{\n(() => {\n  // DateTime.now() captura la fecha y hora del sistema en el instante de la ejecución\n  return DateTime.now()\n    .setZone('America/Argentina/Buenos_Aires')\n    .toFormat('dd/LL/yyyy HH:mm:ss');\n})()\n}}",
+            "nombre": "={{ $('Code in JavaScript').item.json.lead_data.nombre }}",
+            "telefono": "={{ $('Code in JavaScript').item.json.lead_data.telefono }}",
+            "asesor": "={{ $('Code in JavaScript').item.json.agente.Nombre }}",
+            "vertical": "={{ $('Code in JavaScript').item.json.lead_data.vertical }}",
+            "mensaje": "={{ $('Code in JavaScript').item.json.lead_data.motivo }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vertical",
+              "displayName": "vertical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "asesor",
+              "displayName": "asesor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "name": "Save Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2896,
+        1200
+      ],
+      "id": "29dc6401-b3d9-482b-954e-37e41e6c63ec",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## ROL Y TONO\nSos el asistente virtual especializado ÚNICAMENTE en la vertical Industrial de Krak Real Estate.\n\nTu objetivo es identificar si la consulta corresponde a propiedades industriales y derivar el lead humano lo antes posible.\n\nHablás en castellano rioplatense (usás \"vos\", \"estás\", \"podés\").\n\n---\n\n## OBJETIVO PRINCIPAL\nDerivar el lead al agente humano lo más rápido posible SIN romper el flujo de confirmación.\n\n---\n\n## REGLA DE DERIVACIÓN RÁPIDA (CRÍTICA)\n\nSi el usuario expresa intención clara:\n\nEj:\n- \"busco galpón\"\n- \"quiero alquilar depósito\"\n- \"necesito nave industrial\"\n\nNO hagas preguntas.\n\nFlujo obligatorio:\n→ confirmando (resumís intención)\n→ completado (tras confirmación)\n→ derivación\n\n---\n\n## PROHIBIDO\n\n- Ofrecer propiedades\n- Dar listados\n- Respuestas largas\n- Hacer más de 1-2 preguntas\n- Derivar sin pasar por confirmación\n\n---\n\n## ORDEN DE DECISIÓN (OBLIGATORIO)\n\n1. ¿Está relacionado con el negocio inmobiliario?\n   SI → seguir\n   NO → fuera_de_contexto\n\n2. ¿Es industrial?\n   SI → flujo normal\n\n3. ¿Es inmobiliario PERO NO industrial?\n   SI → derivacion_externa (INMEDIATO, sin continuar flujo)\n\nIncluye derivacion_externa:\n- Residencial\n- Marketing\n- Administración\n\n---\n\n## PROTOCOLO DE ESTADOS\n\ncalificando:\nFaltan datos o intención poco clara\ninformacion_completa: false\n\nconfirmando:\nValidás lo entendido antes de derivar\ninformacion_completa: true\n\ncompletado:\nEl usuario confirmó explícitamente\ninformacion_completa: true\n\nfinalizado_agradecimiento:\nCierre corto\n\nreinicio:\nNueva consulta\n\nderivacion_externa:\nConsulta válida pero de otra vertical\n\nfuera_de_contexto:\nConsulta inválida\n\n---\n\n## REGLA CRÍTICA DE TRANSICIÓN (OBLIGATORIA)\n\nEl estado \"completado\" SOLO puede ocurrir si el estado anterior fue \"confirmando\".\n\nPROHIBIDO:\ncalificando → completado\n\nFLUJO OBLIGATORIO:\ncalificando (información completa = false) → confirmando (información completa = true) → completado (información compelta = true)\n\n---\n\nSi el usuario ya dio toda la información:\n\nNO completes directamente.\n\nDEBÉS:\n1. Pasar a confirmando\n2. Reformular lo entendido\n3. Pedir confirmación\n\nEjemplo:\n\"Entonces estás buscando alquilar un galpón, ¿correcto?\"\n\n---\n\n## DETECCIÓN DE CONFIRMACIÓN\n\nConfirmaciones válidas:\n\n- sí / si\n- ok\n- dale\n- correcto\n- perfecto\n\nSin confirmación explícita:\n→ NO usar completado\n\nSi corrige:\n→ volver a calificando\n\n---\n\n## REGLA PARA DERIVACION_EXTERNA\n\nSi detectás otra vertical:\n\nNO usar confirmando\nNO seguir flujo\n\n→ estado: derivacion_externa\n→ respuesta corta indicando que un asesor del área correspondiente continuará\n\n---\n\n## MANEJO DE DUDAS TÉCNICAS\n\nSi no sabés algo:\n\n\"¿Te parece bien que te derive con un asesor para darte ese dato ahora mismo?\"\n\nIMPORTANTE:\nTambién aplica regla de confirmación:\n\n→ confirmando\n→ completado tras OK\n\n---\n\n## PROTOCOLO DE SALUDO\n\nSolo si es primer mensaje sin contexto:\n\n\"Hola, soy el asistente virtual de Krak Real Estate. ¿Cómo puedo ayudarte?\"\n\nNO repetir si hay historial.\n\n---\n\n## IDENTIDAD\n\n1. Buscar en historial\n2. Si no existe:\n{{ $('Normalize').item.json.push_name }}\n\nNunca null si existe.\n\n---\n\n## REGLAS CRÍTICAS\n\n- SIEMPRE clasificar antes de responder\n- NO mezclar verticales\n- NO inventar datos\n- NO derivar sin confirmación (excepto derivacion_externa)\n- NO decir \"te derivo\" hasta estado completado\n\n---\n\n## RESPUESTA EN ESTADO COMPLETADO\n\nDebe indicar claramente que un asesor humano continuará.\n\nEj:\n\"Perfecto, un asesor especializado se va a poner en contacto con vos para ayudarte con esto.\"\n\n---\n\n## FORMATO DE SALIDA\n\nJSON único:\n\n{\n  \"nombre\": \"string\",\n  \"motivo\": \"string | null\",\n  \"estado\": \"calificando | confirmando | completado | finalizado_agradecimiento | reinicio | fuera_de_contexto | derivacion_externa\",\n  \"informacion_completa\": boolean,\n  \"respuesta_al_cliente\": \"string\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        2176
+      ],
+      "id": "2d7e11a0-6654-4391-8027-9383c09f967e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.2",
+          "mode": "list",
+          "cachedResultName": "gpt-5.2"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 300,
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"nombre\": {\n      \"type\": \"string\",\n      \"description\": \"El nombre completo del lead. Si el usuario usa un apodo o el pushName es genérico, se mantiene en null hasta que el bot lo pregunte y el usuario lo confirme.\"\n    },\n    \"motivo\": {\n      \"type\": \"string\",\n      \"description\": \"Resumen breve de la necesidad del cliente (ej: Busca alquilar galpón o depósito. Busca mudar su fábrica.)\"\n    },\n    \"informacion_completa\": {\n      \"type\": \"boolean\",\n      \"description\": \"Solo debe ser true si se tiene el nombre real del usuario y la vertical identificada correctamente.\"\n    },\n    \"respuesta_al_cliente\": {\n      \"type\": \"string\",\n      \"description\": \"El mensaje que el bot enviará por WhatsApp. Debe usar voseo (castellano rioplatense) y no usar formato Markdown (solo * para negrita).\"\n    },\n    \"estado\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"calificando\",\n        \"confirmando\",\n        \"completado\",\n        \"finalizado_agradecimiento\",\n        \"reinicio\",\n        \"fuera_de_contexto\",\n        \"derivacion_externa\"\n      ],\n      \"description\": \"Estado de la conversación\"\n    }\n  },\n  \"required\": [\n    \"nombre\",\n    \"motivo\",\n    \"informacion_completa\",\n    \"respuesta_al_cliente\",\n    \"estado\"\n  ],\n  \"additionalProperties\": false\n}",
+              "strict": true
+            }
+          },
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        2400
+      ],
+      "id": "29c80a98-47a6-47e5-bd66-b0d27d98d28b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LpW749dK3gm4l0KH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"output\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"nombre\": {\n          \"type\": [\"string\", \"null\"],\n          \"description\": \"Nombre completo del lead.\"\n        },\n          \"motivo\": {\n          \"type\": [\"string\", \"null\"],\n          \"description\": \"Resumen breve de la necesidad del cliente.\"\n        },\n        \"informacion_completa\": {\n          \"type\": \"boolean\",\n          \"description\": \"Indica si ya se recolectaron los datos básicos.\"\n        },\n        \"estado\": {\n          \"type\": \"string\",\n          \"enum\": [\"calificando\", \"confirmando\", \"completado\", \"finalizado_agradecimiento\", \"reinicio\", \"fuera_de_contexto\", \"derivacion_externa\"],\n          \"description\": \"Estado actual del flujo de conversación para confirmar el punto en el que se encuentra el cliente.\"\n        },\n        \"respuesta_al_cliente\": {\n          \"type\": \"string\",\n          \"description\": \"Respuesta final para enviar por WhatsApp.\"\n        }\n      },\n      \"required\": [\n        \"nombre\", \n        \"estado\", \n        \"motivo\", \n        \"informacion_completa\", \n        \"respuesta_al_cliente\"\n      ],\n      \"additionalProperties\": false\n    }\n  },\n  \"required\": [\"output\"],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        2400
+      ],
+      "id": "2564fe85-aa8d-452a-afbd-3a63da89c443",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3774d6b8-c0db-4b3b-a754-81aad7278bc4",
+              "leftValue": "={{ $json.from_me }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a2923aa5-5dee-483a-b603-5b76a24ba308",
+              "leftValue": "={{ $json.message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2640,
+        2144
+      ],
+      "id": "b93d7881-ce5d-433e-aff4-de71ab42fdc1",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $json.lead_data.telefono }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.respuesta_whatsapp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Confirm agent to the client",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2672,
+        1200
+      ],
+      "id": "2568a430-00c2-46e7-87a4-48e2a193f62c",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=chat_memory_industrial:{{ $('Normalize').item.json.phone }}",
+        "sessionTTL": 86400,
+        "contextWindowLength": "={{ 10 }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        112,
+        2400
+      ],
+      "id": "e7fccd08-1ea0-4e49-b4ab-7852b261a491",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "1CBn3T8oOgthjKY8",
+          "name": "Redis account Krak"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const msjs = $input.first().json.messages;\n\nif (!msjs || msjs.length === 0) return [{ json: { message: \"\" } }];\n\n// Parseamos cada mensaje y extraemos solo la propiedad 'text'\nconst texts = msjs.map(item => {\n  try {\n    return JSON.parse(item).text;\n  } catch (e) {\n    return item;\n  }\n});\n\n// Los unimos (reverse para que mantengan el orden cronológico si el buffer los guardó al revés)\nconst merged = texts.reverse().join(' ');\n\nreturn [\n  {\n    json: {\n      message: merged\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        2160
+      ],
+      "id": "32a57645-53c9-4118-8376-77c2b97a27c8",
+      "name": "Merge Messages"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3774d6b8-c0db-4b3b-a754-81aad7278bc4",
+              "leftValue": "={{ $('Normalize').item.json.execution_id }}",
+              "rightValue": "={{ $json.last_execution_industrial }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1520,
+        2144
+      ],
+      "id": "113c2854-82be-4657-8506-a8767a22d95a",
+      "name": "If1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1296,
+        2240
+      ],
+      "id": "3f218f9d-119a-43f0-b8c2-e316e7b7a36a",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "36f24938-62fb-416a-9fb5-d69e60997069",
+                    "leftValue": "={{ $json.output.estado }}",
+                    "rightValue": "completado",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "82ed5a28-9ee5-48b5-854c-a524c8e118de",
+                    "leftValue": "={{ $json.output.estado }}",
+                    "rightValue": "finalizado_agradecimiento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bc39395c-8b85-4f31-8557-86a60e666f07",
+                    "leftValue": "={{ $json.output.estado }}",
+                    "rightValue": "confirmando",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "26f569ec-68c9-437f-9d7f-30685c9d8aab",
+                    "leftValue": "={{ $json.output.estado }}",
+                    "rightValue": "reinicio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7fcc68d8-523a-461c-8474-ee1469533380",
+                    "leftValue": "={{ $json.output.estado }}",
+                    "rightValue": "calificando",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        1536
+      ],
+      "id": "31985f4a-9f35-43e4-91b3-4e895c5c87c8",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7b9e3de8-59a8-43a1-9eed-04a1c1ff8894",
+              "leftValue": "={{ $json.output.informacion_completa }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Is completed?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        912,
+        1600
+      ],
+      "id": "b628fdd0-e47e-4375-bb8f-48ac05b14dc6",
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Normalize').item.json.sender_pn }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output.respuesta_al_cliente }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Repsuesta agradecimiento",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1824,
+        1552
+      ],
+      "id": "9a6f6f55-78f1-42cc-ab54-cf39ee6badb5",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Normalize').item.json.sender_pn }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output.respuesta_al_cliente }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Consultar por información faltante",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1840,
+        2336
+      ],
+      "id": "5e9630e5-ba4b-4aca-a8d1-a807cdde8582",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 359924819,
+          "mode": "list",
+          "cachedResultName": "Leads Principal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit#gid=359924819"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "vertical",
+              "lookupValue": "Industrial"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1968,
+        1232
+      ],
+      "id": "e7e5c07a-9563-431f-a52d-898252ab2a76",
+      "name": "Get Leads",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Normalize').item.json.sender_pn }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output.respuesta_al_cliente }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respuesta para confirmación",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1824,
+        1744
+      ],
+      "id": "621a895a-82f9-4510-b619-13f26e45dd05",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Normalize').item.json.sender_pn }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output.respuesta_al_cliente }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Consultar por información faltante1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1824,
+        1936
+      ],
+      "id": "bb7b52d9-4f85-4c63-b3b8-160641dc4f46",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Normalize').item.json.sender_pn }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output.respuesta_al_cliente }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Consultar por información faltante2",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1824,
+        2128
+      ],
+      "id": "afd25d49-4bee-4539-a068-a1a10bc13a8a",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "cata@krak.com.ar",
+        "subject": "=[ERROR] Ocurrió un error al recibir un contacto vía Whatsapp",
+        "emailFormat": "text",
+        "text": "=Hola!\n\nOcurrió un error inesperado durante el workflow de Whatsapp Agente Industrial\n\nMensaje\n{{ $json.execution.error.message }}\n\nNodo\n{{ $json.execution.lastNodeExecuted }}\n\nEjecución\n{{ $json.execution.url }}\n\nVerificar lo antes posible.\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -2816,
+        1792
+      ],
+      "id": "8427671e-0540-4faf-ad53-e0d26d9f6620",
+      "name": "Error E-mail",
+      "webhookId": "7a21549d-9ab7-4863-8251-aaec78209374",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3040,
+        1792
+      ],
+      "id": "08f6cbcd-20a1-4ada-aa0e-36094e0e717f",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Datos de entrada\nconst agentesDisponibles = $('Get Advisors').all().map(i => i.json);\nconst historialLeads = $('Get Leads').all().map(i => i.json);\nconst aiOutput = $('AI Agent').first().json.output;\nconst userData = $('Normalize').first().json;\n\n// Usamos el valor del Switch o del AI Agent, asegurando limpieza\nconst verticalActual = \"Industrial\";\n\n// 2. Filtrar agentes de la vertical (Aseguramos que la columna en Agentes se llame 'Vertical' y 'Nombre')\nconst poolAgentes = agentesDisponibles.filter(a => \n    (a.Vertical || \"\").trim().toLowerCase() === verticalActual.toLowerCase()\n);\n\nif (agentesDisponibles.length === 0) throw new Error(`Sin agentes para: ${verticalActual}`);\n\n\n\n// 3. SORT por row_number (Mucho más seguro que fechas)\n// Asumimos que la propiedad se llama 'row_number' o la mapeaste así\nconst leadsOrdenados = historialLeads.sort((a, b) => {\n    return (Number(b.row_number) || 0) - (Number(a.row_number) || 0);\n});\n\n// 4. Lógica de rotación\nconst ultimoLead = leadsOrdenados.length > 0 ? leadsOrdenados[0] : null;\nlet proximoAgente;\n\nif (!ultimoLead || !ultimoLead.asesor) {\n    proximoAgente = poolAgentes[0];\n} else {\n    const nombreUltimo = ultimoLead.asesor.trim().toLowerCase();\n    \n    // Buscamos en poolAgentes (la columna en la hoja de Agentes debe ser 'Nombre')\n    const ultimoIndex = poolAgentes.findIndex(a => \n        (a.Nombre || \"\").trim().toLowerCase() === nombreUltimo\n    );\n\n    const proximoIndex = (ultimoIndex === -1 || ultimoIndex >= poolAgentes.length - 1) ? 0 : ultimoIndex + 1;\n    proximoAgente = poolAgentes[proximoIndex];\n}\n\n// 5. Salida: Mapeamos los nombres EXACTOS de tus columnas de la hoja Leads\nreturn [{\n    json: {\n        agente: proximoAgente,\n        lead_data: {\n            fecha: DateTime.now().setZone('America/Argentina/Buenos_Aires').toFormat('dd/LL/yyyy HH:mm:ss'),\n            nombre: aiOutput.nombre,\n            telefono: userData.phone,\n            vertical: verticalActual,\n            asesor: proximoAgente.Nombre,\n            motivo: $('Switch').first().json.output.motivo || \"Sin especificar\",\n            mensaje: aiOutput.motivo\n        },\n        respuesta_whatsapp: `${aiOutput.respuesta_al_cliente} *${proximoAgente.Nombre}*  se pondrá en contacto con a la brevedad.` \n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2192,
+        1232
+      ],
+      "id": "d1c59529-27a5-4d0a-9f0c-fa53cff8f2e6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.key.cleanedSenderPn }}"
+            },
+            {
+              "name": "text",
+              "value": "=Solo puedo recibir mensajes de texto.\nActualmente no puedo escuchar audios o ver fotos.\nMe gustaría ayudarte, me podrías escribir tu consulta?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respuesta ante formato incorrecto de mensaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -2624,
+        2512
+      ],
+      "id": "4b93371b-f519-4700-a85f-4e2f195b7c5e",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d25884e1-c23e-40b4-86c6-ea2e5afca1a9",
+              "leftValue": "={{ $json.output.estado }}",
+              "rightValue": "fuera_de_contexto",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "a3bd8150-d1aa-4b46-9770-a2efe2bf5045",
+              "leftValue": "={{ $json.output.estado }}",
+              "rightValue": "=dervivacion_externa",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        2240
+      ],
+      "id": "ee3dbfa1-eafb-4381-8e09-8124345b8be4",
+      "name": "en contexto?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.key.cleanedSenderPn }}"
+            },
+            {
+              "name": "text",
+              "value": "=Disculpame, soy un asistente virtual especializado en Krak Real Estate y no puedo ayudarte con ese tipo de consultas. ¿Tenés alguna duda sobre nuestras propiedades o servicios?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respuesto por consulta Fuera de Contexto",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1152,
+        2336
+      ],
+      "id": "eef58836-487e-4553-8de3-7618850fc086",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "=last_execution_industrial",
+        "key": "=last_execution_industrial:{{ $('Normalize').item.json.phone }}",
+        "options": {}
+      },
+      "name": "Get Last Execution",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -1744,
+        2144
+      ],
+      "id": "8b550ab3-a147-4e5c-b4e3-addf04bee021",
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "1CBn3T8oOgthjKY8",
+          "name": "Redis account Krak"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=last_execution_industrial:{{ $json.phone }}",
+        "value": "={{ $json.execution_id }}",
+        "expire": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -2416,
+        2144
+      ],
+      "id": "7bd8dc66-3805-419c-ba5b-fb81a351f118",
+      "name": "Push Last Execution",
+      "credentials": {
+        "redis": {
+          "id": "1CBn3T8oOgthjKY8",
+          "name": "Redis account Krak"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.estado }}",
+                    "rightValue": "derivacion_externa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d593bb6f-1852-44e4-ac4b-d5f031ae17d9"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "29516cb7-1734-4152-96ee-3a167a8ea7ec",
+                    "leftValue": "={{ $json.output.estado }}",
+                    "rightValue": "fuera_de_contexto",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        2240
+      ],
+      "id": "dff6267e-4418-4912-a067-5148cf7e119d",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://wasenderapi.com/api/send-message",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 71d249736c155d8072557251415a74328f9a75ad221c44a86f4d2610ab4771c7"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Webhook Wasender').item.json.body.data.messages.key.cleanedSenderPn }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output.respuesta_al_cliente }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Respuesto con Derivación Externa",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1152,
+        2144
+      ],
+      "id": "52e08a44-56ab-482b-b5b6-07c003fae383",
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "17bb799c-084e-4a7b-bf94-b277978662f4",
+              "name": "Nombre",
+              "value": "={{ $json.output.nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "d4c3cc87-ec47-4b80-b819-0081c3d9a698",
+              "name": "Agente",
+              "value": "={{ $json.output.respuesta_al_cliente }}",
+              "type": "string"
+            },
+            {
+              "id": "658a4c52-228b-4a5a-ad65-ef4624ed0cee",
+              "name": "Usuario",
+              "value": "={{ $('Merge Messages').item.json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "27943037-e45a-4e2d-977b-17125d9b1887",
+              "name": "Estado",
+              "value": "={{ $json.output.estado }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        1584
+      ],
+      "id": "922b13c8-9735-43c1-9de6-2e813dbeb94f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener log previo\nconst previousLog = $json.conversation_log || [];\n\n// Función para formatear fecha DD/MM/YYYY HH:mm:ss\nfunction formatDate(date) {\n  const d = new Date(date);\n\n  const pad = (n) => n.toString().padStart(2, '0');\n\n  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;\n}\n\n// Timestamp actual\nconst now = formatDate(new Date());\n\n// Nuevos mensajes\nconst newEntries = [];\n\nif ($json.Usuario) {\n  newEntries.push({\n    role: \"user\",\n    message: $json.Usuario.trim(),\n    timestamp: now\n  });\n}\n\nif ($json.Agente) {\n  newEntries.push({\n    role: \"assistant\",\n    message: $json.Agente.trim(),\n    timestamp: now\n  });\n}\n\n// Retorno final\nreturn [\n  {\n    json: {\n      Nombre: $json.Nombre,\n      conversation_log: [...previousLog, ...newEntries]\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        1584
+      ],
+      "id": "2e478f0a-3312-4401-9f72-35e38cae104f",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "juanmderosa@gmail.com",
+        "subject": "=Resumen de conversación Agente Industrial",
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body {\n      font-family: Arial, sans-serif;\n      background-color: #f4f4f4;\n      padding: 20px;\n    }\n    .container {\n      max-width: 600px;\n      margin: auto;\n      background: #ffffff;\n      padding: 20px;\n      border-radius: 8px;\n    }\n    .title {\n      font-size: 20px;\n      font-weight: bold;\n      margin-bottom: 20px;\n    }\n    .message {\n      margin-bottom: 15px;\n      padding: 10px;\n      border-radius: 6px;\n    }\n    .user {\n      background-color: #e1f5fe;\n      text-align: left;\n    }\n    .assistant {\n      background-color: #e8f5e9;\n      text-align: left;\n    }\n    .role {\n      font-weight: bold;\n      margin-bottom: 5px;\n    }\n    .timestamp {\n      font-size: 11px;\n      color: #777;\n      margin-top: 5px;\n    }\n  </style>\n</head>\n\n<body>\n  <div class=\"container\">\n    <div class=\"title\">Nueva conversación recibida</div>\n\n    {{ $json.conversation_log.map(m => `\n      <div class=\"message ${m.role}\">\n        <div class=\"role\">\n          ${m.role === 'user' ? '👤 Usuario' : '🤖 Asistente'}\n        </div>\n        <div>${m.message}</div>\n        <div class=\"timestamp\">${m.timestamp}</div>\n      </div>\n    `).join('') }}\n\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        512,
+        1584
+      ],
+      "id": "6820280d-d517-41ac-bebc-504f933ef935",
+      "name": "Resumen conversación agente industrial",
+      "webhookId": "7a21549d-9ab7-4863-8251-aaec78209374",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7b9e3de8-59a8-43a1-9eed-04a1c1ff8894",
+              "leftValue": "={{ $('Edit Fields').item.json.Estado }}",
+              "rightValue": "completado",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Is completed?1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        288,
+        1584
+      ],
+      "id": "204158fc-a709-4a84-adce-63556fb3132d",
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "content": "# 📑 Documentación Técnica: WhatsApp Agent Industrial\n\n## 1. Resumen Ejecutivo\nEste workflow gestiona un **AI Agent** especializado en la vertical **Industrial** para Krak RE. El flujo recibe mensajes de WhatsApp, utiliza inteligencia artificial para calificar al prospecto (interés en depósitos, naves industriales o terrenos) y, una vez que la información está completa, asigna el lead mediante una lógica de **Round Robin** a los asesores especializados.\n\n---\n\n## 2. Configuración del Disparador (Trigger)\n* **Nodo:** `Webhook Wasender`.\n* **Método:** `POST`.\n* **Endpoint:** `/9ecde5ad-f840-40e1-b4d7-59423b7f3846`.\n* **Filtro Inicial:** El sistema verifica el flag `from_me` para evitar procesar mensajes enviados por el propio bot y prevenir bucles infinitos.\n\n---\n\n## 3. Inteligencia Artificial y Memoria\nEl flujo utiliza un ecosistema de IA para mantener conversaciones fluidas:\n* **AI Agent:** Configurado para actuar como un experto en real estate industrial.\n* **Window Buffer Memory:** Permite al agente recordar el contexto de los mensajes anteriores del usuario, facilitando la recolección de datos faltantes (presupuesto, zona, metros cuadrados).\n* **Output Parser:** Estructura la respuesta de la IA para determinar si el lead está \"Calificado\" o si aún requiere más interacción.\n\n---\n\n## 4. Lógica de Ruteo (Round Robin Industrial)\nCuando el agente marca un lead como completado (`Is completed?1`), se activa la lógica de asignación:\n1.  **Get Advisors:** Consulta la hoja de Google Sheets filtrando por la vertical `Industrial`.\n2.  **Get Último Lead:** Recupera el registro del último asesor que recibió un prospecto de esta categoría.\n3.  **Code (Round Robin):** Compara ambos listados y asigna el lead al siguiente asesor en la rotación, asegurando una distribución equitativa.\n\n---\n\n## 5. Gestión de Errores y Excepciones\nPara garantizar la estabilidad del servicio, el workflow incluye:\n\n* **Error Workflow:** El sistema está vinculado al Error Workflow global (`MR-TYRdbtFjrtBVHixJZA`).\n* **Falla en IA:** Si el modelo de OpenAI no responde, el flujo captura la excepción y evita enviar mensajes vacíos al cliente.\n* **Notificación de Fallos:** Cualquier error crítico en la lectura de Google Sheets o en la lógica de JavaScript se reporta automáticamente vía email a soporte técnico.\n* **Campos Requeridos:** Si el proceso de \"Edit Fields\" detecta datos corruptos, el lead no se guarda en la base principal para mantener la integridad de la planilla.\n\n---\n\n## 6. Diagrama de Flujo (Mermaid)\n```mermaid\ngraph TD\n    A[Webhook WhatsApp] --> B{¿Es de mi parte?}\n    B -- Sí --> C[Ignorar]\n    B -- No --> D[AI Agent + Memory]\n    D --> E{¿Lead Completo?}\n    \n    E -- No --> F[Responder & Seguir Nutriendo]\n    E -- Sí --> G[Resumen de Conversación]\n    \n    G --> H[Consulta Agentes Industriales]\n    H --> I[Lógica Round Robin]\n    I --> J[Asignar Asesor en Sheets]\n    J --> K[Notificar a Staff & Cliente]\n\n    style D fill:#f9f,stroke:#333\n    style I fill:#bbf,stroke:#333\n    style J fill:#dfd,stroke:#333\n```\n---\n\n## 7. Notas de Mantenimiento\nActualizaciones: Antes de modificar el Prompt del Agente, realizar una prueba en el nodo \"Chat\" integrado para validar que la extracción de variables siga funcionando correctamente.\n",
+        "height": 1648,
+        "width": 1136
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        1040
+      ],
+      "id": "865d351e-1a2a-4aa3-8feb-06719932994f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# GESTIÓN DE ERRORES\n",
+        "height": 272,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3088,
+        1696
+      ],
+      "typeVersion": 1,
+      "id": "498f30fa-a258-4ca5-927f-78a157f18781",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "18ed87dd-24a2-4d7f-a64c-9ee1e0582b1a",
+              "leftValue": "={{ $json.body.data.messages.messageBody }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2848,
+        2512
+      ],
+      "id": "9bea2c2f-88f8-4b8e-8ce7-d5d03aed64cc",
+      "name": "Es mensaje de texto?"
+    },
+    {
+      "parameters": {
+        "content": "# RECEPCIÓN Y VALIDACIÓN DE MENSAJES\n",
+        "height": 304,
+        "width": 784,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3136,
+        2400
+      ],
+      "typeVersion": 1,
+      "id": "7c72533e-0f91-4d05-8e2b-412757121a90",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# NORMALIZACIÓN Y CONTROL ANTI DUPLICADOS\n",
+        "height": 304,
+        "width": 2112,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3136,
+        2048
+      ],
+      "typeVersion": 1,
+      "id": "41c9271b-99bb-4899-bf95-03596085005d",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# CONSOLIDACIÓN DE MENSAJES\n",
+        "height": 304,
+        "width": 608,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -992,
+        2048
+      ],
+      "typeVersion": 1,
+      "id": "bae2691c-ea26-42e7-a07a-ba905cca7199",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# PROCESAMIENTO IA Y MEMORIA CONVERSACIONAL",
+        "height": 480,
+        "width": 816,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        2048
+      ],
+      "typeVersion": 1,
+      "id": "3bec910e-08a6-44da-a15d-a7fb12dea746",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "#  LOGGING Y RESUMEN DE CONVERSACIÓN",
+        "height": 272,
+        "width": 896,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        1488
+      ],
+      "id": "bb0d1b23-3fdd-4830-9a9a-14d0749e8051",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# VALIDACION DE CONTEXTO",
+        "height": 448,
+        "width": 784,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        624,
+        2096
+      ],
+      "typeVersion": 1,
+      "id": "82f0c905-b0a6-4daf-a8e2-27d798da9231",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "# ORQUESTACIÓN DE CONTEXTO",
+        "height": 400,
+        "width": 576,
+        "color": "#73480D"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        1472
+      ],
+      "typeVersion": 1,
+      "id": "1bc73a4c-8715-4d5d-ba51-3b54f23231c3",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "# RESPUESTAS A CLIENTE",
+        "height": 1088,
+        "width": 576,
+        "color": "#E8179B"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1712,
+        1440
+      ],
+      "typeVersion": 1,
+      "id": "7ced26c4-56de-4970-ade9-7bf31c01f926",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "# DISTRIBUCIÓN Y ASIGNACIÓN DE LEADS",
+        "height": 272,
+        "width": 704,
+        "color": "#C92626"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        1104
+      ],
+      "id": "8d3698c2-ae8f-496a-92e4-21f4456413a7",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "# NOTIFICACIÓN Y REGISTRO FINAL",
+        "height": 272,
+        "width": 704,
+        "color": "#546C51"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2608,
+        1104
+      ],
+      "id": "4ce55a60-9927-4872-b553-aaf6acfd04dc",
+      "name": "Sticky Note12"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Wasender": {
+      "main": [
+        [
+          {
+            "node": "Es mensaje de texto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Buffer Push": {
+      "main": [
+        [
+          {
+            "node": "Wait Buffer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Buffer": {
+      "main": [
+        [
+          {
+            "node": "Get Last Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Buffer": {
+      "main": [
+        [
+          {
+            "node": "Merge Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Buffer": {
+      "main": [
+        [
+          {
+            "node": "en contexto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Advisors": {
+      "main": [
+        [
+          {
+            "node": "Get Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Advisor": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Clear Buffer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Push Last Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm agent to the client": {
+      "main": [
+        [
+          {
+            "node": "Save Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Messages": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Get Buffer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is completed?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consultar por información faltante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get Advisors",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repsuesta agradecimiento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta para confirmación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consultar por información faltante1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consultar por información faltante2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar por información faltante": {
+      "main": [
+        []
+      ]
+    },
+    "Get Leads": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Lead": {
+      "main": [
+        [
+          {
+            "node": "Notify Advisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Error E-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Confirm agent to the client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "en contexto?": {
+      "main": [
+        [
+          {
+            "node": "Is completed?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Execution": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push Last Execution": {
+      "main": [
+        [
+          {
+            "node": "Redis Buffer Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Respuesto con Derivación Externa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesto por consulta Fuera de Contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Is completed?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is completed?1": {
+      "main": [
+        [
+          {
+            "node": "Resumen conversación agente industrial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es mensaje de texto?": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta ante formato incorrecto de mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "MR-TYRdbtFjrtBVHixJZA",
+    "timeSavedPerExecution": 5
+  },
+  "versionId": "34d41ead-a480-42f9-ae1c-7a013ee85761",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1203683292111d9a2a9723df25ca130b2eea35454b8c54940302a7cc319714c8"
+  },
+  "id": "BEEwXhPmymtEUxm4",
+  "tags": []
+}
+

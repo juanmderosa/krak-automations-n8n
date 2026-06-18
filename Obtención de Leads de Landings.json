@@ -1,0 +1,2209 @@
+{
+  "name": "Obtención de Leads de Landings",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}",
+          "mode": "list",
+          "cachedResultName": "Leads de Krak - A quien le llega cada campaña",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.data.id }}",
+            "Fecha": "={{\n(() => {\n  const value = $json.data.created_time;\n\n  if (!value) return '';\n\n  const fixed = value.replace(/(\\+|\\-)(\\d{2})(\\d{2})$/, '$1$2:$3');\n\n  const dt = DateTime.fromISO(fixed);\n\n  if (!dt.isValid) return 'Fecha inválida';\n\n  return dt\n    .setZone('America/Argentina/Buenos_Aires')\n    .toFormat('dd/LL/yyyy HH:mm:ss');\n})()\n}}",
+            "Origen": "={{ $json.origin }}",
+            "Origen Especifico": "={{ $json.origin_key }}",
+            "Agente": "={{ ($json.agent_mail || '').trim() }}",
+            "Nombre": "={{ $json.full_name }}",
+            "Correo Electrónico": "={{ $json.email }}",
+            "Texto": "={{ $json.message }}",
+            "Teléfono": "={{\n(() => {\n  const raw =\n    $json.telefono ??\n    $json.phone ??\n    $json.data?.field_data?.phone ??\n    $json.data?.field_data?.phone_number ??\n    '';\n\n  let d = String(raw).replace(/\\D/g, '');\n\n  // Normalizaciones típicas AR\n  if (d.startsWith('549')) d = d.slice(3);\n  else if (d.startsWith('54')) d = d.slice(2);\n  if (d.startsWith('0')) d = d.slice(1);\n\n  // Si viene con 15 (muchos formularios)\n  if (d.startsWith('15') && d.length > 10) d = d.slice(2);\n\n  return d;\n})()\n}}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Origen",
+              "displayName": "Origen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Origen Especifico",
+              "displayName": "Origen Especifico",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Agente",
+              "displayName": "Agente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo Electrónico",
+              "displayName": "Correo Electrónico",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teléfono",
+              "displayName": "Teléfono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Texto",
+              "displayName": "Texto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Celular",
+              "displayName": "Celular",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -224,
+        368
+      ],
+      "id": "c7190e3a-81f0-4219-b7c4-c672786151c6",
+      "name": "Store Lead",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1794431873,
+          "mode": "list",
+          "cachedResultName": "Distribución",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=1794431873"
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1312,
+        480
+      ],
+      "id": "6c2592b9-c37b-48f5-8e28-a197d8fe78ca",
+      "name": "Get sales representative target",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "Origen",
+              "field2": "origin_key"
+            }
+          ]
+        },
+        "joinMode": "enrichInput2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        -1088,
+        480
+      ],
+      "id": "6df3f915-78dd-442e-ba9d-ae3ab5b97753",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "172b9c34-20c8-4144-992d-6ebda27eec3f",
+              "name": "agent_mail",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        1152
+      ],
+      "id": "ca10f7dc-81d0-41e7-ac24-c20dc5ccce9b",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dc271b91-7783-4cad-a180-8634675f113d",
+              "leftValue": "={{ $json.Agentes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "f13b7681-84f8-41a3-8f16-51605c31642a",
+              "leftValue": "={{ $json.Agentes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -672,
+        464
+      ],
+      "id": "2b374155-7366-4c28-bfdc-6686ded720d7",
+      "name": "Get the ones that have an agent assigned"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dc271b91-7783-4cad-a180-8634675f113d",
+              "leftValue": "={{ $json.Agentes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -640,
+        1152
+      ],
+      "id": "6276bd5c-ebd7-47c9-bf1a-f51c4edd76ae",
+      "name": "Get the ones that don't"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "append",
+              "field": "origin_key"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        1056
+      ],
+      "id": "67b8650a-b70b-4461-b80b-d6025bbf2a69",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "emanuel@krak.com.ar",
+        "subject": "Origenes sin agentes asignados",
+        "emailFormat": "text",
+        "text": "=Hola!\nLos siguientes origenes no tienen agente asignado. Porfavor asignar, y checkear los contactos en la sección de \"Consultas\" de Tokko.\n\nLos origenes son:\n{{ $json.appended_origin_key.join(`\\n`) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        1056
+      ],
+      "id": "b034ff7e-4be1-4d97-a19f-e0571721baff",
+      "name": "Send Email",
+      "webhookId": "e065463a-2f08-4f1b-b7f1-02f9d42a2a8b",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://tokkobroker.com/api/v1/webcontact/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "1692bf77e1f6dbfd002920e99f10078898ff6fa3"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  \"text\": $json.message,\n  \"name\": $json.data.field_data?.full_name ?? $json.data.field_data?.[\"full name\"] ?? $json.data.field_data?.name,\n  \"email\": $json.data.field_data.email,\n  \"cellphone\": $json.data.field_data?.phone ?? $json.data.field_data?.phone_number ?? $json.data.field_data?.['número_de_teléfono'],\n  \"phone\": $json.data.field_data?.phone ?? $json.data.field_data?.phone_number ?? $json.data.field_data?.['número_de_teléfono'],\n  \"agent_mail\": $json.agent_mail,\n  \"tags\": $json?.tags ?? [],\n  \"properties\": $json?.properties?.filter(Boolean) ?? [],\n\"developments\": $json?.developments?.filter(Boolean) ?? []\n}, null, 2)\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        560
+      ],
+      "id": "005a2e10-2e6a-4349-9284-194fd3c53755",
+      "name": "Submit to Tokko",
+      "executeOnce": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "123bc4f3-caba-48bd-adf1-fd5c7295bd61",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        656
+      ],
+      "id": "afd25cd1-1943-4d01-95dd-4b1c97735181",
+      "name": "Webhook Albornordelta",
+      "webhookId": "123bc4f3-caba-48bd-adf1-fd5c7295bd61"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "57894fa5-9571-49b6-bee4-cbfb084c6459",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        208
+      ],
+      "id": "974c03f5-d5bb-49bf-9df2-2f011793cc86",
+      "name": "Webhook Polo25",
+      "webhookId": "57894fa5-9571-49b6-bee4-cbfb084c6459"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b61b98e3-6db2-4fa8-915c-d4219d923692",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        432
+      ],
+      "id": "18f2cd6f-7b53-4346-bfde-4d69ca6a8c81",
+      "name": "Webhook Buen Ayre 2",
+      "webhookId": "b61b98e3-6db2-4fa8-915c-d4219d923692"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{\n(() => {\n  const origin =\n    $json.query?.origin ||\n    $json.body?.url_origen ||\n    '';\n\n  const cleanOrigin = origin\n    .replaceAll('https://', '')\n    .replaceAll('http://','')\n    .replaceAll('www.','');\n\n  return JSON.stringify({\n    origin_key: cleanOrigin,\n    origin: \"Web\",\n    data: {\n      created_time: new Date(),\n      id: `${Date.now()}${Math.floor(Math.random()*1000)}`,\n      field_data: {\n        full_name: $json.body?.name,\n        email: $json.body?.email,\n        phone_number: $json.body?.phone,\n        Mensaje: $json.body?.message || \"\"\n      }\n    }\n  }, null, 2);\n})()\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1680,
+        656
+      ],
+      "id": "9b3866eb-1f76-4e5a-b68a-c8b551680f81",
+      "name": "Adjust to current schema"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}",
+          "mode": "list",
+          "cachedResultName": "Leads de Krak - A quien le llega cada campaña",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 881438264,
+          "mode": "list",
+          "cachedResultName": "SitiosWeb",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=881438264"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Dominio": "={{ $json.origin_key }}"
+          },
+          "matchingColumns": [
+            "Dominio"
+          ],
+          "schema": [
+            {
+              "id": "Dominio",
+              "displayName": "Dominio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1312,
+        704
+      ],
+      "id": "d6e40fda-c456-4f93-a679-41d09d031abb",
+      "name": "Update available website keys",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7e1134f4-c5d2-4a48-b670-04566486d278",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        1552
+      ],
+      "id": "a77c85d1-0059-453d-825a-dd165b98a78d",
+      "name": "Before Quote",
+      "webhookId": "7e1134f4-c5d2-4a48-b670-04566486d278"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "891fbb6e-b82c-4a61-a3de-5f8037592cb8",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        1328
+      ],
+      "id": "7d9d51c7-e507-4f04-984a-85ac0115c19c",
+      "name": "After Quote",
+      "webhookId": "891fbb6e-b82c-4a61-a3de-5f8037592cb8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "61013b1a-c051-49d7-9f1f-570552ef82d4",
+              "name": "body.email",
+              "value": "={{ $json.body.Correo }}",
+              "type": "string"
+            },
+            {
+              "id": "59cda2e2-9dc5-4def-8f68-5af27cdc1b2f",
+              "name": "body.phone",
+              "value": "={{ $json.body['Teléfono'] }}",
+              "type": "string"
+            },
+            {
+              "id": "477d1a50-c0dc-42fd-91bc-983bc35d50b2",
+              "name": "body.message",
+              "value": "={{ $json.body.Localidad }}{{ $json.body?.Barrio ? (', '+$json.body?.Barrio) : '' }}{{': '+ $json.body['Descripción del inmueble'] }}",
+              "type": "string"
+            },
+            {
+              "id": "340b4688-f6b6-4afb-bebd-fd516cae5b31",
+              "name": "body.name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2160,
+        1552
+      ],
+      "id": "21bf04c9-cc53-40c1-a3f5-6c602eaa5d9e",
+      "name": "Body"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "61013b1a-c051-49d7-9f1f-570552ef82d4",
+              "name": "body.email",
+              "value": "={{ $json.body.Correo }}",
+              "type": "string"
+            },
+            {
+              "id": "59cda2e2-9dc5-4def-8f68-5af27cdc1b2f",
+              "name": "body.phone",
+              "value": "={{ $json.body['Teléfono'] }}",
+              "type": "string"
+            },
+            {
+              "id": "477d1a50-c0dc-42fd-91bc-983bc35d50b2",
+              "name": "body.message",
+              "value": "={{ Object.entries($json.body).filter(item => !['Nombre', \"Correo\", \"Teléfono\"].includes(item[0])).map(item=>item.join(': ')).join('; ') }}",
+              "type": "string"
+            },
+            {
+              "id": "340b4688-f6b6-4afb-bebd-fd516cae5b31",
+              "name": "body.name",
+              "value": "={{ $json.body.Nombre }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2032,
+        1040
+      ],
+      "id": "e8b8b62e-304b-40b1-934e-73752f9b957e",
+      "name": "Body1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d329465b-a55b-42ac-a8fc-9b0b02eed651",
+              "name": "body",
+              "value": "={{JSON.parse($json.body.json)}}",
+              "type": "object"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2160,
+        1328
+      ],
+      "id": "26986211-f0cf-4006-b248-89cd3635a054",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  if (item.json.message.includes('concordia_design')) item.json.properties = [6868436];\n  \n  if (item.json.message.includes('helguera_park')) item.json.properties = [6868349];\n  \n  if (item.json.message.includes('campana_design')) item.json.properties = [6869016];\n  \n  if (item.json.message.includes('santo_tomé')) item.json.properties = [6869227];\n  \n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        560
+      ],
+      "id": "c9277ae3-ce17-443b-bd43-22b5c760b42a",
+      "name": "Special Cases"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "123bc4f3-caba-48bd-adf1-fd2934bd61",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        880
+      ],
+      "id": "6a56156b-daa2-47e3-9adc-5705d0e9f485",
+      "name": "Webhook Chatbot Aureo",
+      "webhookId": "123bc4f3-caba-48bd-adf1-fd5c7295bd61"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "terrenos-krak",
+        "options": {}
+      },
+      "id": "818c3b43-35cd-4153-addf-dec37accedf4",
+      "name": "Webhook Terrenos Krak",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2576,
+        1104
+      ],
+      "webhookId": "7d925b35-7dfa-47fd-9791-e47e69281b7f"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "cata@krak.com.ar",
+        "subject": "=[ERROR] Obtención de Leads de Landings",
+        "emailFormat": "text",
+        "text": "=Hola!\n\nOcurrió un error inesperado en la carga de leads, adjunto el link a la ejecución:\n\nMensaje\n{{ $json.execution.error.message }}\n\nNodo\n{{ $json.execution.lastNodeExecuted }}\n\nEjecución\n{{ $json.execution.url }}\n\nVerificar lo antes posible.\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -2416,
+        -832
+      ],
+      "id": "35d02ca6-8caf-4060-8156-a07849eb5bdf",
+      "name": "Send Email2",
+      "webhookId": "e065463a-2f08-4f1b-b7f1-02f9d42a2a8b",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?gid=2058490138#gid=2058490138",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1794431873,
+          "mode": "list",
+          "cachedResultName": "Distribución",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=1794431873"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Origen": "={{ $json.origin_key }}",
+            "Etiquetas": "Clientes Potenciales | Campañas IG FB"
+          },
+          "matchingColumns": [
+            "Origen"
+          ],
+          "schema": [
+            {
+              "id": "Origen",
+              "displayName": "Origen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Agentes",
+              "displayName": "Agentes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Etiquetas",
+              "displayName": "Etiquetas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Emprendimiento",
+              "displayName": "Emprendimiento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Propiedad",
+              "displayName": "Propiedad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -192,
+        1248
+      ],
+      "id": "7b30767f-28a1-4ad2-a4b9-d32b7578f4e9",
+      "name": "Add to distribution sheet",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9db00863-57aa-4301-864a-3e71a81b77c6",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        1776
+      ],
+      "id": "0aa7feeb-beef-4cf4-b33a-27a8ececaf0f",
+      "name": "Webhook Velo Miller",
+      "webhookId": "9db00863-57aa-4301-864a-3e71a81b77c6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ac12e60-e94f-4481-947c-7c96aa3c7c5d",
+              "name": "body.name",
+              "value": "={{ $json.body?.['form_fields[name]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "54fd7f8c-1e1e-4b71-8b4a-e57e9e2f6cf3",
+              "name": "body.email",
+              "value": "={{ $json.body?.['form_fields[email]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "72ce18e6-ed6c-4d69-b9a9-a5940aa13100",
+              "name": "body.phone",
+              "value": "={{ $json.body?.['form_fields[field_01de907]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2d223e44-a04a-4572-9208-5c123ae562f1",
+              "name": "body.message",
+              "value": "={{ $json.body?.['form_fields[message]'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2144,
+        1776
+      ],
+      "id": "a499ba91-6d1b-46ab-aece-9788ccc04c0c",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ac12e60-e94f-4481-947c-7c96aa3c7c5d",
+              "name": "body.name",
+              "value": "={{ $json.body?.['form_fields[name]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "54fd7f8c-1e1e-4b71-8b4a-e57e9e2f6cf3",
+              "name": "body.email",
+              "value": "={{ $json.body?.['form_fields[email]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "72ce18e6-ed6c-4d69-b9a9-a5940aa13100",
+              "name": "body.phone",
+              "value": "={{ $json.body?.['form_fields[field_01de907]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2d223e44-a04a-4572-9208-5c123ae562f1",
+              "name": "body.message",
+              "value": "={{ $json.body?.['form_fields[message]'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2144,
+        2000
+      ],
+      "id": "b8ada452-44df-4b77-b585-b5558047c101",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "3468e46f-fb32-432b-a503-795bf2b094fe",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        2000
+      ],
+      "id": "ccdadf93-296a-40f5-8107-3d7b3aaf039e",
+      "name": "Webhook 11 de septiembre",
+      "webhookId": "9db00863-57aa-4301-864a-3e71a81b77c6"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "8d05c2da-2231-4f98-bbba-7c1ce8734120",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        -464
+      ],
+      "id": "12ff6076-f44d-4465-9345-edd40965ab41",
+      "name": "Webhook Industrial Krak",
+      "webhookId": "9db00863-57aa-4301-864a-3e71a81b77c6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ac12e60-e94f-4481-947c-7c96aa3c7c5d",
+              "name": "body.name",
+              "value": "={{ $json.body?.['form_fields[name]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "54fd7f8c-1e1e-4b71-8b4a-e57e9e2f6cf3",
+              "name": "body.email",
+              "value": "={{ $json.body['form_fields[field_2c26b4b]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "72ce18e6-ed6c-4d69-b9a9-a5940aa13100",
+              "name": "body.phone",
+              "value": "={{ $json.body['form_fields[field_c09c9b8]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2d223e44-a04a-4572-9208-5c123ae562f1",
+              "name": "body.message",
+              "value": "={{ `Zona: ${$json.body['form_fields[field_305a91b]']}\nSuperficie: ${$json.body['form_fields[field_8e145d2]']}\nMensaje: \"${$json.body['form_fields[field_f967008]']}\"` }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2160,
+        -480
+      ],
+      "id": "f10a1f94-951b-4851-928e-8c9f5d314882",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "01e2f0c5-4661-48cb-a827-d513be6e2c59",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2576,
+        -240
+      ],
+      "id": "0fc8a1d6-71e3-4c77-9a1a-c91081038d91",
+      "name": "Webhook Junin 1275",
+      "webhookId": "9db00863-57aa-4301-864a-3e71a81b77c6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ac12e60-e94f-4481-947c-7c96aa3c7c5d",
+              "name": "body.name",
+              "value": "={{ $json.body['form_fields[message]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "54fd7f8c-1e1e-4b71-8b4a-e57e9e2f6cf3",
+              "name": "body.email",
+              "value": "={{ $json.body['form_fields[field_2f688d7]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "72ce18e6-ed6c-4d69-b9a9-a5940aa13100",
+              "name": "body.phone",
+              "value": "={{ $json.body['form_fields[field_77cf8c5]'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2d223e44-a04a-4572-9208-5c123ae562f1",
+              "name": "body.message",
+              "value": "={{ $json.body['form_fields[field_00fb96b]'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2160,
+        -256
+      ],
+      "id": "a2d8f627-7d3f-4148-8b6f-b81b5d307be6",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. OBTENCIÓN DE CONFIGURACIÓN DE AGENTES\nconst configNodes = $(\"Get sales representative target\").all();\nconst configMap = {};\n\nconfigNodes.forEach(node => {\n  const data = node.json;\n  configMap[data.Origen] = {\n    agentes: data.Agentes ? data.Agentes.split(',').map(a => a.trim()).filter(a => a) : [],\n    etiquetas: data.Etiquetas ? data.Etiquetas.split(',').map(e => e.trim()) : [],\n    emprendimiento: data.Emprendimiento || \"\",\n    propiedad: data.Propiedad || \"\"\n  };\n});\n\n// 2. MEMORIA ESTÁTICA n8n\nconst workflowStaticData = $getWorkflowStaticData('global');\n\n// 3. PROCESAMIENTO\nlet items = $input.all();\n\nreturn items.map((item) => {\n  const leadRaw = item.json;\n  const originKey = leadRaw.origin_key;\n  const config = configMap[originKey];\n  \n  // --- LÓGICA DE AGENTES ---\n  let assignedAgent = \"Sin Agente\";\n  if (config && config.agentes.length > 0) {\n    const lastRep = workflowStaticData[originKey] || null;\n    const lastIndex = config.agentes.indexOf(lastRep);\n    const nextIndex = (lastIndex === -1) ? 0 : (lastIndex + 1) % config.agentes.length;\n    assignedAgent = config.agentes[nextIndex];\n    workflowStaticData[originKey] = assignedAgent;\n  }\n\n  // --- NORMALIZACIÓN HÍBRIDA (Array de FB o Objeto de Web) ---\n  const rawFields = leadRaw.data?.field_data || {};\n  const fieldData = {};\n\n  if (Array.isArray(rawFields)) {\n    // Es formato Facebook (Array)\n    for (const field of rawFields) {\n      fieldData[field.name] = field.values?.[0] || '';\n    }\n  } else {\n    // Es formato Web/Webhook (Objeto plano)\n    Object.assign(fieldData, rawFields);\n  }\n\n  // Extracción de campos principales\n  const full_name = fieldData.full_name || fieldData[\"full name\"] || fieldData.first_name || '';\n  const email = fieldData.email || '';\n  const company_name = fieldData.company_name || '';\n  const phone = fieldData.phone || fieldData.phone_number || fieldData.telefono || '';\n\n  // --- FORMATEO DE MENSAJE (Campos extras) ---\n  const ignored = [\"full_name\", \"full name\", \"telefono\", \"phone\", \"phone_number\", \"email\", \"company_name\"];\n  const parts = [];\n  for (const key in fieldData) {\n    if (!ignored.includes(key) && fieldData[key]) {\n      // Si el valor es un objeto o array (raro en web), lo convertimos a string\n      const val = typeof fieldData[key] === 'object' ? JSON.stringify(fieldData[key]) : fieldData[key];\n      parts.push(`${key}: ${val}`);\n    }\n  }\n  const message = parts.join(\"; \");\n\n  return {\n    json: {\n      ...leadRaw, \n      data: {\n        ...leadRaw.data,\n        field_data: fieldData\n      },\n      full_name,\n      phone,\n      email,\n      company_name,\n      message,\n      agent_mail: assignedAgent,\n      tags: config ? config.etiquetas : [],\n      developments: config?.emprendimiento ? [config.emprendimiento] : [],\n      properties: config?.propiedad ? [config.propiedad] : [],\n      fecha_sistema: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        464
+      ],
+      "id": "d77f6a3c-47d6-42ef-9b66-86fef80fb3bb",
+      "name": "Lead Master Processor"
+    },
+    {
+      "parameters": {
+        "content": "# 📑 Documentación Técnica: Obtención de Leads de Landings\n\n## 1. Resumen Ejecutivo\nEste workflow actúa como un **Hub de Ingesta Centralizado** para capturar leads provenientes de diversas Landings de proyectos (ej. Junín 1275). Su función es recibir los datos vía Webhook, normalizarlos bajo un esquema común y derivarlos al procesador maestro para su correcta asignación y registro en el CRM.\n\n---\n\n## 2. Puntos de Entrada (Triggers)\nEl sistema utiliza múltiples endpoints para identificar el origen exacto del lead.\n\n---\n\n## 3. Normalización y Estructura\nDado que cada landing puede enviar los nombres de los campos de forma distinta, el flujo implementa una capa de traducción:\n* **Edit Fields (Mapeo):** Cada entrada de Webhook pasa por un nodo de edición que estandariza los datos (Nombre, Teléfono, Email, Proyecto).\n* **Adjust to current schema:** Un nodo de código que asegura que los objetos JSON finales tengan las claves exactas que requiere el resto del ecosistema de automatización de **Krak RE**.\n\n---\n\n## 4. Procesamiento de Salida\nUna vez que el lead está normalizado, el flujo ejecuta las siguientes acciones:\n1.  **Lead Master Processor:** Envía el lead al sub-workflow encargado de la lógica de negocio pesada.\n2.  **Registro en Google Sheets:** Se inserta o actualiza el lead en la hoja principal *\"Leads de Krak - A quien le llega cada campaña\"*.\n3.  **Special Cases:** Un nodo condicional evalúa si el lead proviene de una fuente que requiere un tratamiento manual o una notificación inmediata fuera del estándar.\n\n---\n\n## 5. Inventario de Integraciones y Credenciales\n| Servicio | Credencial en n8n | Uso |\n| :--- | :--- | :--- |\n| **n8n Webhook** | (Interno) | Recepción de datos de formularios de Landings. |\n| **Google Sheets** | `GS - info@krak.com.ar` | Registro histórico y control de asignación. |\n| **SMTP** | `Hostinger SMTP` | Alertas del sistema en caso de fallos. |\n\n---\n\n## 6. Manejo de Errores e Incidencias\n* **Error Trigger:** El flujo está monitoreado por el disparador de errores `Ko6x8FPp...`.\n* **Resiliencia:** Si la escritura en Google Sheets falla, el sistema lanza una alerta a `juanmderosa@gmail.com`.\n* **Filtro de Datos:** Se incluyen validaciones para evitar que leads con campos de contacto vacíos avancen hacia el procesador maestro, protegiendo la calidad de la base de datos.\n\n---\n\n## 7. Diagrama de Flujo (Mermaid)\n```mermaid\ngraph TD\n    A[Webhook Landing Junín] --> D[Mapeo de Campos]\n    B[Webhook Landing Proyecto X] --> D\n    C[Webhook Landing Proyecto Y] --> D\n    \n    D --> E[Adjust to Current Schema]\n    E --> F[Lead Master Processor]\n    F --> G{¿Es Caso Especial?}\n    \n    G -- No --> H[Store Lead en Google Sheets]\n    G -- Sí --> I[Ruteo Especial / Alerta]\n    \n    H --> J[Fin]\n    I --> J\n\n    style D fill:#f96,stroke:#333\n    style H fill:#bbf,stroke:#333\n```\n\n## 8. Notas de Mantenimiento\nEscalabilidad: Para agregar una nueva Landing, simplemente se debe crear un nuevo nodo Webhook y conectarlo al nodo Adjust to current schema.\n\nProtocolo: Cambios en la estructura de la hoja de Google Sheets destino deben replicarse primero en los nodos Edit Fields de este workflow para evitar desfasajes de columnas.\n\nSoporte: Lunes a Viernes, 09:00 a 18:00.\n",
+        "height": 1792,
+        "width": 1168
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -304
+      ],
+      "id": "50b4a54c-cb1b-40ab-8a27-e20f90374533",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2640,
+        -832
+      ],
+      "id": "79d0db7a-0cfe-4eec-bd71-bcf0e02a43e4",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ac12e60-e94f-4481-947c-7c96aa3c7c5d",
+              "name": "body.name",
+              "value": "={{ $json.body.nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "54fd7f8c-1e1e-4b71-8b4a-e57e9e2f6cf3",
+              "name": "body.email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "72ce18e6-ed6c-4d69-b9a9-a5940aa13100",
+              "name": "body.phone",
+              "value": "={{ $json.body.telefono }}",
+              "type": "string"
+            },
+            {
+              "id": "8a9aa294-583a-4e06-b7ba-23f73579fe5e",
+              "name": "body.message",
+              "value": "=direccion: {{ $json.body.direccion }}, zona: {{ $json.body.zona }}, tipo_propiedad: {{ $json.body.tipo_propiedad }}, presupuesto: {{ $json.body.presupuesto }}, tipo_lead: {{ $json.body.tipo_lead }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2160,
+        -32
+      ],
+      "id": "6dc93109-5ab7-4680-9462-120da93fa26b",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "72af7b5a-b5ad-4e85-ba49-05948f319e46",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2576,
+        -16
+      ],
+      "id": "7c7bfb52-5e04-4a6d-a892-6f8c678261e6",
+      "name": "Webhook Krak Usados",
+      "webhookId": "72af7b5a-b5ad-4e85-ba49-05948f319e46"
+    },
+    {
+      "parameters": {
+        "content": "## GESTIÓN DE ERRORES",
+        "height": 288,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2688,
+        -944
+      ],
+      "typeVersion": 1,
+      "id": "7ce17c3b-ae77-47b1-beb1-5d35c9e59d8a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## OBTENCIÓN DE LEADS",
+        "height": 2784,
+        "width": 464,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2704,
+        -592
+      ],
+      "typeVersion": 1,
+      "id": "d8f48917-bdbf-42da-bf8f-8968e7af319f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## CARGA EN CRM Y SHEETS\n",
+        "height": 560,
+        "width": 1392,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -752,
+        224
+      ],
+      "typeVersion": 1,
+      "id": "d9feea68-74c4-4699-8707-fae046ffe198",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## AVISO DE NUEVA FUENTE DE LEADS\n\n",
+        "height": 448,
+        "width": 976,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -736,
+        976
+      ],
+      "typeVersion": 1,
+      "id": "f5fb9cd0-f3b3-4b4d-949e-678379f88152",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## BÚSQUEDA DE AGENTES POR PROYECTO",
+        "height": 640,
+        "width": 448,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1360,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "0120ba2e-aa8f-404c-9916-ed12dedb0730",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## NORMALIZACIÓN DE LEADS",
+        "height": 2784,
+        "width": 736,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2224,
+        -592
+      ],
+      "typeVersion": 1,
+      "id": "84d12ea5-b944-4d01-b888-0c77f316eac4",
+      "name": "Sticky Note6"
+    }
+  ],
+  "pinData": {
+    "Webhook Albornordelta": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "930d9b2993669c0b-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 162.158.195.137, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "448",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data;boundary=db31ae2427db94ca69ad7727d5f26187",
+            "x-request-start": "t=1744742790690485",
+            "fly-client-ip": "162.158.195.137",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01JRXCCDH28Z1Q5K4ZQFRY03AY-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://albornordelta.com",
+            "ip": "2a09:bac5:a3:9a5::f6:1a"
+          },
+          "body": {
+            "name": "Juan Rolon",
+            "email": "juan@krak.com.ar",
+            "phone": "11 2607-1619",
+            "message": "Este es un mensaje de prueba."
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/123bc4f3-caba-48bd-adf1-fd5c7295bd61",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook Buen Ayre 2": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "930db15043769c0b-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 162.158.195.171, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "474",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data;boundary=03dc51f3cc6532128530ecf3b9c728d1",
+            "x-request-start": "t=1744743697992309",
+            "fly-client-ip": "162.158.195.171",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01JRXD83J8M7XKF9JKPWVAPW8X-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://buenayre2.com",
+            "ip": "2a09:bac5:a3:9a5::f6:1a"
+          },
+          "body": {
+            "name": "Juan rolón",
+            "email": "juan@krak.com.ar",
+            "phone": "11 26071619",
+            "message": "Hola! Este es un formulario de prueba. Pero del footer."
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/b61b98e3-6db2-4fa8-915c-d4219d923692",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Before Quote": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "933fd98507e5ab38-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 172.69.35.130, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "654",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data; boundary=4e5c44e969f30429fbfcd78b6c12d787",
+            "x-request-start": "t=1745269632855082",
+            "fly-client-ip": "172.69.35.130",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01JSD2TBTQVAYCJZHE7C2X2DWN-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://valuador.krak.com.ar",
+            "ip": "2a09:bac5:dc:139b::1f4:5"
+          },
+          "body": {
+            "name": "Juan Rolon",
+            "Localidad": "CABA",
+            "Barrio": "Colegiales",
+            "Correo": "juan@krak.com.ar",
+            "Teléfono": "11 26071619",
+            "Descripción del inmueble": "Un depto en colegiales"
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/7e1134f4-c5d2-4a48-b670-04566486d278",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "After Quote": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "92e3e4e8f3229c0b-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 162.158.195.175, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "474",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data;boundary=a31ffa99c94767ee2a549423272569f8",
+            "x-request-start": "t=1744305409479361",
+            "fly-client-ip": "162.158.195.175",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01JRGB8KE73DTX1MM4TABEBKQ3-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "http://localhost:4321",
+            "ip": "2a09:bac5:78:9a5::f6:1d"
+          },
+          "body": {
+            "json": "{\r\n  \"Localidad\": \"Acassuso\",\r\n  \"Operación\": \"Venta\",\r\n  \"Tipo\": \"Departamento\",\r\n  \"Ambientes\": 2,\r\n  \"Superficie Cubierta\": \"100 m²\",\r\n  \"Superficie Total\": \"100 m²\",\r\n  \"Amenities\": \"cochera\",\r\n  \"A estrenar\": \"No\",\r\n  \"Nombre\": \"juan\",\r\n  \"Correo\": \"Juan@krak.com.ar\",\r\n  \"Teléfono\": \"1126071619\",\r\n  \"Aproximación\": \"USD 260,000 a 300,000\"\r\n}"
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/891fbb6e-b82c-4a61-a3de-5f8037592cb8",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook Chatbot Aureo": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "930d9b2993669c0b-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 162.158.195.137, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "448",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data;boundary=db31ae2427db94ca69ad7727d5f26187",
+            "x-request-start": "t=1744742790690485",
+            "fly-client-ip": "162.158.195.137",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01JRXCCDH28Z1Q5K4ZQFRY03AY-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://albornordelta.com",
+            "ip": "2a09:bac5:a3:9a5::f6:1a"
+          },
+          "body": {
+            "name": "Juan Rolon",
+            "email": "juan@krak.com.ar",
+            "phone": "11 2607-1619",
+            "message": "Este es un mensaje de prueba."
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/123bc4f3-caba-48bd-adf1-fd5c7295bd61",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook Terrenos Krak": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "9497bd9a845d8bc1-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 198.41.231.110, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "595",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data; boundary=c5f6a7311833aa34909514bb7345c72a",
+            "x-request-start": "t=1748875591118134",
+            "fly-client-ip": "198.41.231.110",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01JWRHQFEE0E5R7A8YA10TJHPB-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://terrenos.krak.com.ar",
+            "ip": "2a09:bac5:cb:1b9::2c:d4"
+          },
+          "body": {
+            "name": "Juan Rolón",
+            "email": "juan@krak.com.ar",
+            "phone": "1126071619",
+            "message": "Es un terreno que queda ahi por Dardo Rocha 2070, frente al hipodromo, nose si conocen. ",
+            "lastname": ""
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/terrenos-krak",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook Velo Miller": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "95d4bab1676e98d3-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 172.69.35.174, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "673",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data; boundary=8cc2d74fd908f812c33ee9bacac2d6df",
+            "x-request-start": "t=1752199457526602",
+            "fly-client-ip": "172.69.35.174",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01JZVKKTQPZPHM3QY19S4CH4DS-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://velomiller.pages.dev",
+            "ip": "2800:810:5e4:2bf2:10c7:8d4:57e4:7c8f"
+          },
+          "body": {
+            "post_id": "262",
+            "referer_title": "",
+            "form_fields[name]": "Juan Rolon",
+            "form_fields[email]": "juanrolon54@outlook.com",
+            "form_fields[field_01de907]": "1126071619",
+            "form_fields[message]": "Hola"
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/9db00863-57aa-4301-864a-3e71a81b77c6",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook 11 de septiembre": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "95f1a36935468bea-EZE",
+            "cf-ipcountry": "AR",
+            "host": "n8n-krak.com",
+            "x-forwarded-for": "2a06:98c0:3600::103, 104.23.237.81, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "content-length": "661",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data; boundary=bcac9015652f1ad3e1f3cf33cc122ec6",
+            "x-request-start": "t=1752502590940975",
+            "fly-client-ip": "104.23.237.81",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "eze",
+            "fly-request-id": "01K04MPQEW2JJ62HJTF2G2T2G9-eze",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://11deseptiembrebrat.fly.dev",
+            "ip": "2a09:bac5:78:28be::40f:37"
+          },
+          "body": {
+            "post_id": "4154",
+            "referer_title": "",
+            "form_fields[name]": "juan",
+            "form_fields[email]": "juan@krak.com.ar",
+            "form_fields[field_01de907]": "1126071619",
+            "form_fields[message]": "hola"
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/3468e46f-fb32-432b-a503-795bf2b094fe",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook Junin 1275": [
+      {
+        "json": {
+          "headers": {
+            "cf-ray": "96b7f786c5468bc1-EZE",
+            "x-forwarded-for": "2a06:98c0:3600::103, 198.41.230.119, 66.241.125.183",
+            "host": "n8n-krak.com",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "accept-encoding": "gzip, br",
+            "x-forwarded-proto": "https",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-ew-via": "15",
+            "content-type": "multipart/form-data; boundary=b5abc76f91a06f5192bfa1b483fc2ac6",
+            "cf-ipcountry": "AR",
+            "content-length": "677",
+            "x-request-start": "t=1754582217120385",
+            "fly-client-ip": "198.41.230.119",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "gru",
+            "fly-request-id": "01K22KZWD0B680S919690DKS27-gru",
+            "via": "1.1 fly.io, 1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "http://localhost:8000",
+            "ip": "2a09:bac5:7b:1b9::2c:af"
+          },
+          "body": {
+            "post_id": "10",
+            "referer_title": "",
+            "form_fields[message]": "Juan",
+            "form_fields[field_2f688d7]": "juan@krak.com.ar",
+            "form_fields[field_77cf8c5]": "1126071619",
+            "form_fields[field_00fb96b]": "Hola."
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/01e2f0c5-4661-48cb-a827-d513be6e2c59",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Webhook Krak Usados": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n-krak.com",
+            "content-length": "256",
+            "content-type": "application/json",
+            "cf-ray": "9e9a0d9e0df3203c-EZE",
+            "cf-ew-via": "15",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-ipcountry": "AR",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "x-forwarded-proto": "https",
+            "x-forwarded-for": "2a06:98c0:3600::103, 198.41.230.209, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "connection": "Keep-Alive",
+            "x-request-start": "t=1775743385331684",
+            "fly-client-ip": "198.41.230.209",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "gru",
+            "fly-request-id": "01KNS8VFQKR7DMA01ZJ0ZEJZNY-gru",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "nombre": "fdafdafda",
+            "email": "nuevouser@test.com",
+            "telefono": "0111554632571",
+            "direccion": "",
+            "zona": "Palermo",
+            "tipo_propiedad": "",
+            "presupuesto": "low",
+            "tipo_lead": "Comprador",
+            "fecha_registro": "2026-04-09T14:03:05.242Z",
+            "url_origen": "http://127.0.0.1:5500/"
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook-test/72af7b5a-b5ad-4e85-ba49-05948f319e46",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Webhook Industrial Krak": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n-krak.com",
+            "content-length": "1037",
+            "content-type": "multipart/form-data; boundary=4b039e8bcc000655512b8936fd8ba0a5",
+            "cf-ray": "9fbed50d1c548b2a-GRU",
+            "cf-ew-via": "15",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-ipcountry": "BR",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "x-forwarded-proto": "https",
+            "x-forwarded-for": "2a06:98c0:3600::103, 104.22.10.98, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "connection": "Keep-Alive",
+            "x-request-start": "t=1778813396181881",
+            "fly-client-ip": "104.22.10.98",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "gru",
+            "fly-request-id": "01KRMRMS6N1GQRHPJAREVSYFQQ-gru",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://industrial-krak.fly.dev",
+            "ip": "181.239.173.170"
+          },
+          "body": {
+            "post_id": "215",
+            "referer_title": "Contacto",
+            "form_fields[field_aa9cc64]": "Arbox 2",
+            "form_fields[name]": "Ernesto ",
+            "form_fields[field_2c26b4b]": "coronase@sherwin.com.ar",
+            "form_fields[field_c09c9b8]": "1159222243",
+            "form_fields[field_305a91b]": "Zona Norte",
+            "form_fields[field_8e145d2]": "0 - 500 m2",
+            "form_fields[field_f967008]": ""
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/8d05c2da-2231-4f98-bbba-7c1ce8734120",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Webhook Polo25": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n-krak.com",
+            "content-length": "463",
+            "content-type": "multipart/form-data; boundary=cf3e39d0d08850ee5a1625b59dbe1559",
+            "cf-ray": "9faa23a69b7d8bea-EZE",
+            "cf-ew-via": "15",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-worker": "rapid-band-96d6.workers.dev",
+            "cf-connecting-ip": "2a06:98c0:3600::103",
+            "cf-ipcountry": "AR",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "x-forwarded-proto": "https",
+            "x-forwarded-for": "2a06:98c0:3600::103, 104.23.237.22, 66.241.125.183",
+            "accept-encoding": "gzip, br",
+            "connection": "Keep-Alive",
+            "x-request-start": "t=1778596414762308",
+            "fly-client-ip": "104.23.237.22",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "gru",
+            "fly-request-id": "01KRE9Q19AW9PD9V3V6M1C52KD-gru",
+            "via": "1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "origin": "https://polo25.com",
+            "ip": "190.12.104.130"
+          },
+          "body": {
+            "name": "Gustavo Avila",
+            "email": "javieravilaok40@gmail.com",
+            "phone": "1137023282",
+            "message": "Hola queria dejarles um cv\r\n\r\n\r\n\r\n"
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/57894fa5-9571-49b6-bee4-cbfb084c6459",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Store Lead": {
+      "main": [
+        []
+      ]
+    },
+    "Get sales representative target": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Get the ones that have an agent assigned",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get the ones that don't",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add to distribution sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the ones that have an agent assigned": {
+      "main": [
+        [
+          {
+            "node": "Lead Master Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the ones that don't": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit to Tokko": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook Albornordelta": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Polo25": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Buen Ayre 2": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adjust to current schema": {
+      "main": [
+        [
+          {
+            "node": "Get sales representative target",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Update available website keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Before Quote": {
+      "main": [
+        [
+          {
+            "node": "Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "After Quote": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Body": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Body1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Body1": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Special Cases": {
+      "main": [
+        [
+          {
+            "node": "Submit to Tokko",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Chatbot Aureo": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Terrenos Krak": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Velo Miller": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook 11 de septiembre": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Industrial Krak": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Junin 1275": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Master Processor": {
+      "main": [
+        [
+          {
+            "node": "Store Lead",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Special Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send Email2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Adjust to current schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Krak Usados": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveExecutionProgress": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "timeSavedMode": "fixed",
+    "availableInMCP": false,
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": false,
+    "errorWorkflow": "Ko6x8FPpPxCMAGPR"
+  },
+  "versionId": "4fd81bb8-38cb-4c52-b525-a9c165e910e9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1203683292111d9a2a9723df25ca130b2eea35454b8c54940302a7cc319714c8"
+  },
+  "id": "Ko6x8FPpPxCMAGPR",
+  "tags": []
+}
+

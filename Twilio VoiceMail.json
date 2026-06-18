@@ -1,0 +1,932 @@
+{
+  "name": "Twilio VoiceMail",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $('Webhook').first().json.body.RecordingUrl }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "f3a8ff8c-815e-4071-a15e-8dff5cd681ee",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2480, 368],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "RwtcVoQt3JTXpJ2T",
+          "name": "Twilio Api Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "={{ $('Get Advisors1').item.json.Email }}",
+        "subject": "={{ $('Code in JavaScript').first().json.asunto }}",
+        "emailFormat": "text",
+        "text": "Alguien dejo un correo de voz.",
+        "options": {
+          "appendAttribution": false,
+          "attachments": "data"
+        }
+      },
+      "id": "527c0a4a-4967-4b5c-b05d-32b6330c1a94",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2928, 368],
+      "webhookId": "c024d781-c739-42bb-b36f-4e65514f73ae",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "twilio-ivr-voice-transcription",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "dc6d9f9c-110e-4ff1-9b2c-39575384bc92",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [432, 736],
+      "webhookId": "09506439-50c5-4791-b015-71962de5e872"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mapeo de agentes desde variables de entorno\nconst staff = {\n  [process.env.STAFF_PABLO_PHONE]: \"Pablo\",\n  [process.env.STAFF_SABRINA_PHONE]: \"Sabrina\",\n  [process.env.STAFF_MAURO_PHONE]: \"Mauro\",\n  [process.env.STAFF_MARIANO_PHONE]: \"Mariano\",\n  [process.env.STAFF_MARTIN_PHONE]: \"Martin\",\n  [process.env.STAFF_CATALINA_PHONE]: \"Catalina\",\n  [process.env.STAFF_FLORENCIA_PHONE]: \"Florencia\"\n};\n\nconst xmlData = $('XML').first().json.TwilioResponse.Call;\nconst numeroAsesor = $('Webhook').first().json.body.To || xmlData.To.replace('+', '').trim();\n\nconst isVoicemail = $('Webhook').first().json.query.voiceMail === \"true\";\nconsole.log(isVoicemail)\nconst vertical =  $('Webhook').first().json.query.vertical || 'General';\nconst duration = $('Webhook').first().json.body.RecordingDuration;\n\nreturn {\n  tipo: isVoicemail ? \"NUEVO MENSAJE DE VOZ\" : \"LLAMADA FINALIZADA\",\n  asunto: `[${isVoicemail ? 'VOICEMAIL' : 'LLAMADA'}] - ${vertical}`,\n  agente: isVoicemail ? \"N/A (Buzón)\" : (staff[numeroAsesor.trim()] || \"Desconocido\"),\n  duracion: `${Math.floor(duration / 60)}m ${duration % 60}s`,\n  cliente: $('Webhook').first().json.body.From || \"Número oculto\",\n  vertical: $('Webhook').first().json.query.vertical === \"Administracion\" ? \"Administración\" : $('Webhook').first().json.query.vertical\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1328, 640],
+      "id": "868cf32b-4c83-4d95-baa8-8c431140b24b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "={{ $('Round Robin de Agentes').item.json.agente.Email }}",
+        "subject": "={{ $('Code in JavaScript').first().json.asunto }}",
+        "emailFormat": "text",
+        "text": "Alguien dejo un correo de voz.",
+        "options": {
+          "appendAttribution": false,
+          "attachments": "=data"
+        }
+      },
+      "id": "b73f8a99-7550-4fc6-a219-43209028575c",
+      "name": "Send Email1",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [3328, 848],
+      "webhookId": "c024d781-c739-42bb-b36f-4e65514f73ae",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "67a78b43-ebeb-4dee-b156-ca1fd635c61d",
+              "leftValue": "={{ $json.body.RecordingDuration }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [656, 640],
+      "id": "e49bb8f2-c05f-4218-9529-277af14185de",
+      "name": "Duración sufiente?"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Webhook').first().json.body.RecordingUrl }} ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "5a5dd235-028e-4f04-973c-c85814382612",
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 848],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "RwtcVoQt3JTXpJ2T",
+          "name": "Twilio Api Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 359924819,
+          "mode": "list",
+          "cachedResultName": "Leads Principal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit#gid=359924819"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "vertical",
+              "lookupValue": "={{ $json.Vertical }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [2432, 848],
+      "id": "c38f147c-ea1c-4971-975f-20b08b6d55cb",
+      "name": "Get Leads",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Datos de entrada\nconst agentesDisponibles = $('Get Advisors').all().map(i => i.json);\nconst historialLeads = $('Get Leads').all().map(i => i.json);\n\n\n// Usamos el valor del Switch o del AI Agent, asegurando limpieza\nconst verticalActual = $('Code in JavaScript').first().json.vertical;\n\n// 2. Filtrar agentes de la vertical (Aseguramos que la columna en Agentes se llame 'Vertical' y 'Nombre')\nconst poolAgentes = agentesDisponibles.filter(a => \n    (a.Vertical || \"\").trim().toLowerCase() === verticalActual.toLowerCase()\n);\n\nif (agentesDisponibles.length === 0) throw new Error(`Sin agentes para: ${verticalActual}`);\n\n// 3. SORT por row_number (Mucho más seguro que fechas)\n// Asumimos que la propiedad se llama 'row_number' o la mapeaste así\nconst leadsOrdenados = historialLeads.sort((a, b) => {\n    return (Number(b.row_number) || 0) - (Number(a.row_number) || 0);\n});\n\n// 4. Lógica de rotación\nconst ultimoLead = leadsOrdenados.length > 0 ? leadsOrdenados[0] : null;\nlet proximoAgente;\n\nif (!ultimoLead || !ultimoLead.asesor) {\n    proximoAgente = poolAgentes[0];\n} else {\n    const nombreUltimo = ultimoLead.asesor.trim().toLowerCase();\n    \n    // Buscamos en poolAgentes (la columna en la hoja de Agentes debe ser 'Nombre')\n    const ultimoIndex = poolAgentes.findIndex(a => \n        (a.Nombre || \"\").trim().toLowerCase() === nombreUltimo\n    );\n\n    const proximoIndex = (ultimoIndex === -1 || ultimoIndex >= poolAgentes.length - 1) ? 0 : ultimoIndex + 1;\n    proximoAgente = poolAgentes[proximoIndex];\n}\n\n// 5. Salida: Mapeamos los nombres EXACTOS de tus columnas de la hoja Leads\nreturn [{\n    json: {\n        agente: proximoAgente,\n        lead_data: {\n            fecha: DateTime.now().setZone('America/Argentina/Buenos_Aires').toFormat('dd/LL/yyyy HH:mm:ss'),\n            nombre: \"Voice Mail de Twilio\",\n            telefono: $('Webhook').first().json.body.To,\n            vertical: verticalActual,\n            asesor: proximoAgente.Nombre,\n            mensaje: \"Voice Mail de Twilio - Chequear E-mail\"\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2656, 848],
+      "id": "7e0d8fad-286f-44bf-809e-6fdceffe3500",
+      "name": "Round Robin de Agentes"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Agentes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Vertical",
+              "lookupValue": "={{ $('Code in JavaScript').item.json.vertical }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [2000, 848],
+      "id": "fa66ab69-a4b5-471c-b973-c0e909de45c5",
+      "name": "Get Advisors",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Agentes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Teléfono",
+              "lookupValue": "={{ $('XML').item.json.TwilioResponse.Call.To.replace(\"+\", \"\").trim() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [2048, 368],
+      "id": "bf5c0311-3a62-4255-8032-954b922f7623",
+      "name": "Get Advisors1",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}",
+          "mode": "list",
+          "cachedResultName": "Whatsapp Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 359924819,
+          "mode": "list",
+          "cachedResultName": "Leads Principal",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_WHATSAPP_AGENT_ID }}/edit#gid=359924819"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{\n(() => {\n  // DateTime.now() captura la fecha y hora del sistema en el instante de la ejecución\n  return DateTime.now()\n    .setZone('America/Argentina/Buenos_Aires')\n    .toFormat('dd/LL/yyyy HH:mm:ss');\n})()\n}}",
+            "nombre": "={{ $('Round Robin de Agentes').item.json.lead_data.nombre }}",
+            "telefono": "={{ $('Round Robin de Agentes').item.json.lead_data.telefono }} - Revisar mensaje en e-mail",
+            "asesor": "={{ $('Round Robin de Agentes').item.json.lead_data.asesor }}",
+            "vertical": "={{ $('Round Robin de Agentes').item.json.lead_data.vertical }}",
+            "mensaje": "={{ $('Round Robin de Agentes').item.json.lead_data.mensaje }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vertical",
+              "displayName": "vertical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "asesor",
+              "displayName": "asesor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mensaje",
+              "displayName": "mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "name": "Save Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [3552, 848],
+      "id": "60d78309-b2e1-4d16-89e9-c9d6039e5bb7",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let new_file_name = 'buzon-de-voz-twilio.wav'\nconst data = Object.assign(items[0].binary.data, {fileName:new_file_name});\nreturn [\n  {\n    json:{},\n    binary: {\n      data:data\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2704, 368],
+      "id": "58df3b6f-6d8c-418c-84eb-b643717574c1",
+      "name": "Convertir archivo"
+    },
+    {
+      "parameters": {
+        "jsCode": "let new_file_name = 'buzon-de-voz-twilio.wav'\nconst data = Object.assign(items[0].binary.data, {fileName:new_file_name});\nreturn [\n  {\n    json:{},\n    binary: {\n      data:data\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3104, 848],
+      "id": "1a06d79f-edb0-4cac-a8b5-69373814cee7",
+      "name": "Convertir archivo1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [432, 320],
+      "id": "8ddab20a-4c7a-44b0-b3fe-e1546b8f4fb8",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "cata@krak.com.ar",
+        "subject": "=Error en Workflow Twilio",
+        "emailFormat": "text",
+        "text": "=Hola!\n\nOcurrió un error inesperado durante el workflow de Twilio\n\nMensaje\n{{ $json.execution.error.message }}\n\nNodo\n{{ $json.execution.lastNodeExecuted }}\n\nEjecución\n{{ $json.execution.url }}\n\nVerificar lo antes posible.",
+        "options": {
+          "appendAttribution": false,
+          "attachments": "data"
+        }
+      },
+      "id": "ca81622b-5db2-44ef-bd68-57f07659d370",
+      "name": "Send Error Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [656, 320],
+      "webhookId": "c024d781-c739-42bb-b36f-4e65514f73ae",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 📑 Documentación Técnica: Twilio VoiceMail\n---\n\n## 1. Resumen Ejecutivo\n\nEste workflow gestiona la recepción y procesamiento de eventos de voz de **Twilio**, cubriendo tanto mensajes de buzón de voz (**Voicemail**) como **Llamadas Finalizadas** para el sector inmobiliario. Su objetivo es centralizar los leads, asignar un responsable y asegurar que el audio de la interacción llegue al equipo de ventas de forma inmediata.\n\n---\n\n## 2. Configuración del Disparador (Trigger)\n* **Nodo:** `Webhook`.\n* **Método:** `POST`.\n* **Ruta de producción:** `twilio-ivr-voice-transcription`.\n* **Filtro de Calidad:** Se incluye una validación de tiempo (`Duración suficiente?`) que descarta cualquier audio menor o igual a **3 segundos** para filtrar errores de conexión o llamadas \"fantasma\".\n\n---\n\n## 3. Lógica de Ruteo y Clasificación\nEl procesamiento de datos ocurre en el nodo `Code in JavaScript`, encargado de las siguientes tareas técnicas:\n\n### Mapeo de Agentes\nEl sistema utiliza un diccionario interno para identificar a los miembros del equipo según su número de contacto:\n\n### Bifurcación del Flujo (`If1`)\n* **Ruta de Llamada Directa:** Si el evento es una llamada finalizada, el flujo consulta la hoja de **Agentes** en Google Sheets para encontrar el email del asesor que atendió.\n* **Ruta de Voicemail (Round Robin):** Si es un mensaje de voz, el sistema recupera los asesores por vertical (ej. Administración, Ventas) y utiliza una lógica de rotación (**Round Robin**) basada en el último lead asignado en la hoja **Leads Principal**.\n\n---\n\n## 4. Gestión de Archivos y Notificaciones\n1. **Descarga:** Se recupera el archivo binario desde el `RecordingUrl` de Twilio usando credenciales de autenticación básica.\n2. **Normalización:** Se fuerza el nombre del archivo a `buzon-de-voz-twilio.wav` para garantizar la compatibilidad al enviarlo como adjunto.\n3. **Email:** Se despacha una notificación vía SMTP (Hostinger) con el detalle del cliente, la vertical y el archivo de audio.\n\n---\n\n## 5. Diagrama de Flujo (Mermaid)\n```mermaid\ngraph TD\n    A[Webhook Twilio] --> B{¿Duración > 3s?}\n    B -- No --> C[Fin / Descartar]\n    B -- Sí --> D[JS Code: Clasificación]\n    D --> E{¿Llamada Directa?}\n    \n    E -- Sí --> F[Get Asesor por Teléfono]\n    F --> G[Download Audio]\n    G --> H[Email al Asesor]\n\n    E -- No --> I[Get Agentes por Vertical]\n    I --> J[Round Robin Logic]\n    J --> K[Download Audio]\n    K --> L[Email + Registro Sheets]\n```\n---\n\n## 6. Mantenimiento y Soporte\nErrores: Cualquier fallo en la ejecución activa un Error Trigger que envía un reporte técnico a juanmderosa@gmail.com.\n\nHorario de Operación: Como política del equipo, los ajustes en producción y el soporte se realizan de Lunes a Viernes, de 09:00 a 18:00. No se deben realizar despliegues críticos los viernes por la tarde para asegurar la estabilidad del servicio durante el fin de semana.\n\n\n",
+        "height": 1632,
+        "width": 864
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [4016, -16],
+      "id": "2b220bde-53ca-4912-ab9f-4287cee843be",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n    <Hangup/>\n</Response>",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/xml"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [656, 832],
+      "id": "c66f564e-f46c-462d-b2b8-1c9f811c808f",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Calls/{{ $json.body.DialCallSid }}\n",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "3d758376-29bc-4d24-ab38-c34aff04cadf",
+      "name": "HTTP Request2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 640],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "RwtcVoQt3JTXpJ2T",
+          "name": "Twilio Api Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [1104, 640],
+      "id": "907e3d6c-6462-488a-8ac4-2790dcd2b5c8",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2256, 368],
+      "id": "8c9941f5-eabf-4117-b12f-d42bc66193df",
+      "name": "Wait",
+      "webhookId": "fb1f946c-be51-452f-a010-8ea4a90b171a"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2208, 848],
+      "id": "854cbcdd-a980-43f5-9715-5876a5a48ad9",
+      "name": "Wait1",
+      "webhookId": "fc74b93b-a8c6-4727-80cb-a82ab25204f0"
+    },
+    {
+      "parameters": {
+        "content": "## GESTIÓN DE ERRORES",
+        "height": 240,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [352, 224],
+      "typeVersion": 1,
+      "id": "30f59983-70dc-43b0-b4de-84ec3b885180",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## RUTA DE MENSAJES DE VOZ\n",
+        "height": 304,
+        "width": 1808,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1952, 720],
+      "typeVersion": 1,
+      "id": "ec135cca-788c-4d64-b23a-6f6c917a2423",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## RUTA DE LLAMADAS RESPONDIDAS\n",
+        "height": 304,
+        "width": 1216,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1968, 272],
+      "typeVersion": 1,
+      "id": "cc769c6a-568b-4c74-bf3f-be0a8bcddbe0",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1a68126f-cd25-4a10-bd60-5e583a8ef6c5",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "LLAMADA FINALIZADA",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [1552, 640],
+      "id": "f3728833-9a6a-4733-98ce-33e2253c6c49",
+      "name": "Se atendió la llamda?"
+    },
+    {
+      "parameters": {
+        "content": "## OBTENCIÓN DE INFORMACIÓN DESDE TWILIO\n",
+        "height": 512,
+        "width": 1552,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [336, 512],
+      "typeVersion": 1,
+      "id": "95a3e92a-b9eb-4582-a376-7fa2f86a87d9",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "44.202.22.65, 162.158.79.55, 66.241.125.183",
+            "x-twilio-answertimeout": "PT15S, PT15S",
+            "x-twilio-signature": "HSU7T3kJIkI11b/CrvwM2tsZd7E=",
+            "user-agent": "TwilioProxy/1.1",
+            "x-home-region": "us1",
+            "cf-ray": "9e588646fb61d67f-IAD",
+            "connection": "Keep-Alive",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "referer": "https://handler.twilio.com/twiml/EH93132918fec544cd26c6564947f2e81c?ConnectTo=91164835192&ConnectTo2=91135843344&ConnectTo3=91140795515&contactReason=Industrial&FlowId=FW025da4e8fac533de43c559341515fb8c",
+            "x-twilio-service-flow-event": "%7B%22flow_id%22%3A%22voice_twimlverb_01kn4seftzfb1rm0mnx110r13v%22%2C%22type%22%3A%22api_event%22%2C%22action%22%3A%22twiml_fetch%22%2C%22sub_action%22%3A%22completed%22%2C%22result%22%3A%22success%22%2C%22metadata%22%3A%7B%22transfer_type%22%3A%22call_transfer_url%22%7D%7D",
+            "i-twilio-idempotency-token": "1df1c879-0322-4144-8cf9-7690f29cabf3",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "44.202.22.65",
+            "cf-ipcountry": "US",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "x-forwarded-proto": "https",
+            "host": "n8n-krak.com",
+            "content-length": "814",
+            "x-request-start": "t=1775056267398546",
+            "fly-client-ip": "162.158.79.55",
+            "fly-forwarded-proto": "https",
+            "fly-forwarded-ssl": "on",
+            "x-forwarded-ssl": "on",
+            "fly-forwarded-port": "443",
+            "x-forwarded-port": "443",
+            "fly-region": "iad",
+            "fly-request-id": "01KN4SJA467MVSQB0RE1G8CM7N-iad",
+            "via": "1.1 fly.io, 1.1 fly.io"
+          },
+          "params": {},
+          "query": {
+            "vertical": "Industrial"
+          },
+          "body": {
+            "Called": "+541152773674",
+            "RecordingUrl": "https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Recordings/REda32e7489c75624f2139a569e53fa4dc",
+            "ToState": "Buenos Aires",
+            "DialCallStatus": "completed",
+            "CallerCountry": "AR",
+            "Direction": "inbound",
+            "CallerState": "Buenos Aires",
+            "ToZip": "",
+            "DialCallSid": "CAb9c1b025c6824364ac46b07a1596a7db",
+            "CallSid": "CA13147ac8f58e4343102828241ac543f2",
+            "To": "+541152773674",
+            "CallerZip": "",
+            "ToCountry": "AR",
+            "CalledZip": "",
+            "ApiVersion": "2010-04-01",
+            "CalledCity": "",
+            "CallStatus": "completed",
+            "RecordingSid": "REda32e7489c75624f2139a569e53fa4dc",
+            "From": "+5491141694306",
+            "DialBridged": "true",
+            "AccountSid": "{{ $env.TWILIO_ACCOUNT_SID }}",
+            "DialCallDuration": "106",
+            "CalledCountry": "AR",
+            "CallerCity": "",
+            "ToCity": "",
+            "FromCountry": "AR",
+            "Caller": "+5491141694306",
+            "FromCity": "",
+            "CalledState": "Buenos Aires",
+            "FromZip": "",
+            "FromState": "Buenos Aires",
+            "RecordingDuration": "107"
+          },
+          "webhookUrl": "https://n8n-krak.com/webhook/twilio-ivr-voice-transcription",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Convertir archivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Duración sufiente?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Se atendió la llamda?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duración sufiente?": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Convertir archivo1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leads": {
+      "main": [
+        [
+          {
+            "node": "Round Robin de Agentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Advisors": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Round Robin de Agentes": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Advisors1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email1": {
+      "main": [
+        [
+          {
+            "node": "Save Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir archivo": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir archivo1": {
+      "main": [
+        [
+          {
+            "node": "Send Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send Error Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Get Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Se atendió la llamda?": {
+      "main": [
+        [
+          {
+            "node": "Get Advisors1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Advisors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "a073fac8-5112-4bfb-af5f-6161feec4961",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1203683292111d9a2a9723df25ca130b2eea35454b8c54940302a7cc319714c8"
+  },
+  "id": "t2uvxKMEKic6UIpj",
+  "tags": []
+}

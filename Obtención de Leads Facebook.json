@@ -1,0 +1,1553 @@
+{
+  "name": "Obtención de Leads Facebook",
+  "nodes": [
+    {
+      "parameters": {
+        "graphApiVersion": "v22.0",
+        "node": "={{ $json.id }}",
+        "edge": "leadgen_forms",
+        "options": {
+          "fields": {
+            "field": [
+              {
+                "name": "id"
+              },
+              {
+                "name": "name"
+              },
+              {
+                "name": "status"
+              }
+            ]
+          },
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "access_token",
+                "value": "={{ $json.access_token }}"
+              },
+              {
+                "name": "limit",
+                "value": "1000"
+              },
+              {
+                "name": "=filtering",
+                "value": "[{\"field\":\"status\",\"operator\":\"EQUAL\",\"value\":\"ACTIVE\"}]"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        -320
+      ],
+      "id": "6e43d023-7171-4817-852b-207f5e482d71",
+      "name": "Get Forms",
+      "retryOnFail": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "YzJJHq01A4nCY8G4",
+          "name": "Facebook Graph n8n Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -224
+      ],
+      "id": "1d63cf18-a6da-4ce3-8e11-618102d02313",
+      "name": "Split leads out of query",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}",
+          "mode": "list",
+          "cachedResultName": "Leads de Krak - A quien le llega cada campaña",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.data.id }}",
+            "Fecha": "={{\n(() => {\n  const value = $json.data.created_time;\n\n  if (!value) return '';\n\n  const fixed = value.replace(/(\\+|\\-)(\\d{2})(\\d{2})$/, '$1$2:$3');\n\n  const dt = DateTime.fromISO(fixed);\n\n  if (!dt.isValid) return 'Fecha inválida';\n\n  return dt\n    .setZone('America/Argentina/Buenos_Aires')\n    .toFormat('dd/LL/yyyy HH:mm:ss');\n})()\n}}",
+            "Origen": "={{ $json.origin }}",
+            "Origen Especifico": "={{ $json.origin_key }}",
+            "Agente": "={{ ($json.agent_mail || '').trim() }}",
+            "Nombre": "={{ $json.full_name }}",
+            "Correo Electrónico": "={{ $json.email }}",
+            "Texto": "={{ $json.message }}",
+            "Teléfono": "={{\n(() => {\n  const raw =\n    $json.telefono ??\n    $json.phone ??\n    $json.data?.field_data?.phone ??\n    $json.data?.field_data?.phone_number ??\n    '';\n\n  let d = String(raw).replace(/\\D/g, '');\n\n  // Normalizaciones típicas AR\n  if (d.startsWith('549')) d = d.slice(3);\n  else if (d.startsWith('54')) d = d.slice(2);\n  if (d.startsWith('0')) d = d.slice(1);\n\n  // Si viene con 15 (muchos formularios)\n  if (d.startsWith('15') && d.length > 10) d = d.slice(2);\n\n  return d;\n})()\n}}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Origen",
+              "displayName": "Origen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Origen Especifico",
+              "displayName": "Origen Especifico",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Agente",
+              "displayName": "Agente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo Electrónico",
+              "displayName": "Correo Electrónico",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teléfono",
+              "displayName": "Teléfono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Texto",
+              "displayName": "Texto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Celular",
+              "displayName": "Celular",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1472,
+        -592
+      ],
+      "id": "92250bf1-73a7-4325-9c66-ad646b34a5ae",
+      "name": "Store Lead",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}",
+          "mode": "list",
+          "cachedResultName": "Leads de Krak - A quien le llega cada campaña",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2058490138,
+          "mode": "list",
+          "cachedResultName": "FormulariosFacebook",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=2058490138"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Página": "={{ $json.page_name }}",
+            "Id Pagina": "={{ $json.page_id }}",
+            "Formulario": "={{ $json.form_name }}",
+            "Id Formulario": "={{ $json.form_id }}",
+            "Nombre Friendly": "={{ $json.origin_key }}"
+          },
+          "matchingColumns": [
+            "Nombre Friendly"
+          ],
+          "schema": [
+            {
+              "id": "Nombre Friendly",
+              "displayName": "Nombre Friendly",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Página",
+              "displayName": "Página",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Id Pagina",
+              "displayName": "Id Pagina",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Formulario",
+              "displayName": "Formulario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Id Formulario",
+              "displayName": "Id Formulario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        160,
+        -416
+      ],
+      "id": "e2441aa5-bed1-468d-8b3b-bf483242ad01",
+      "name": "Update available form keys",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}",
+          "mode": "list",
+          "cachedResultName": "Leads de Krak - A quien le llega cada campaña",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1794431873,
+          "mode": "list",
+          "cachedResultName": "Distribución",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=1794431873"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        560,
+        -416
+      ],
+      "id": "e1403d63-e3f7-4832-a8db-c15ed20d4ef4",
+      "name": "Get sales representative target",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "Origen",
+              "field2": "origin_key"
+            }
+          ]
+        },
+        "joinMode": "enrichInput2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        560,
+        -160
+      ],
+      "id": "cf5a4999-0786-47de-b601-a319c25e9077",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "172b9c34-20c8-4144-992d-6ebda27eec3f",
+              "name": "agent_mail",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        304
+      ],
+      "id": "ee9a64ff-2929-44e7-9d60-e63d4c1effdd",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "22a00373-a2ef-4511-a0b4-489abbba3f3b",
+              "leftValue": "={{ $json.Agentes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "73db38c0-a3be-4b1a-aaf1-7053afb35779",
+              "leftValue": "={{ $json.Agentes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        -400
+      ],
+      "id": "b0961c11-8a73-451f-8229-b556806658b8",
+      "name": "Get the ones that have an agent assigned"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dc271b91-7783-4cad-a180-8634675f113d",
+              "leftValue": "={{ $json.Agentes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        304
+      ],
+      "id": "5769fcc9-bc2f-4a23-b134-4cc1283617f7",
+      "name": "Get the ones that don't"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "append",
+              "field": "origin_key"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        1472,
+        208
+      ],
+      "id": "7778b7de-d660-4b3f-8d02-d91bd64e8181",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "emanuel@krak.com.ar",
+        "subject": "Origenes sin agentes asignados",
+        "emailFormat": "text",
+        "text": "=Hola!\nLos siguientes origenes no tienen agente asignado. Porfavor asignar, y checkear los contactos en la sección de \"Consultas\" de Tokko.\n\nLos origenes son:\n{{ $json.appended_origin_key.join(`\\n`) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1696,
+        208
+      ],
+      "id": "b3e9e0ed-1545-45de-995f-eb03fb6f4cf7",
+      "name": "Send Email",
+      "webhookId": "a6ab28f4-b815-4d4d-8e6f-80980208ef97",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://tokkobroker.com/api/v1/webcontact/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "1692bf77e1f6dbfd002920e99f10078898ff6fa3"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\n  \"text\": $json.message,\n  \"name\": $json.data.field_data?.full_name ?? $json.data.field_data?.[\"full name\"] ?? $json.data.field_data?.name,\n  \"email\": $json.data.field_data.email,\n  \"cellphone\": $json.data.field_data?.phone ?? $json.data.field_data?.phone_number ?? $json.data.field_data?.['número_de_teléfono'],\n  \"phone\": $json.data.field_data?.phone ?? $json.data.field_data?.phone_number ?? $json.data.field_data?.['número_de_teléfono'],\n  \"agent_mail\": $json.agent_mail,\n  \"tags\": $json?.tags ?? [],\n  \"properties\": $json?.properties?.filter(Boolean) ?? [],\n\"developments\": $json?.developments?.filter(Boolean) ?? []\n}, null, 2)\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        -208
+      ],
+      "id": "8f9a3263-7ac3-4c68-9415-d9fc8a595933",
+      "name": "Submit to Tokko",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0da225a9-ca0c-40c9-aeb6-87d9311b4318",
+                    "leftValue": "={{ $json.origin_key.trim() }}",
+                    "rightValue": "Krak Real Estate | Cap. Desarrolladores-copy",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Marcelo"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        -304
+      ],
+      "id": "9dfc3d86-006d-458c-bcc8-969fd22bd1d0",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  if (item.json.message.includes('concordia_design')) item.json.properties = [6868436];\n  \n  if (item.json.message.includes('helguera_park')) item.json.properties = [6868349];\n  \n  if (item.json.message.includes('campana_design')) item.json.properties = [6869016];\n  \n  if (item.json.message.includes('santo_tomé')) item.json.properties = [6869227];\n  \n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        -208
+      ],
+      "id": "98983a90-51d2-4f41-8fa6-cb37fbb80cdd",
+      "name": "Special Cases"
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v22.0",
+        "node": "=me",
+        "edge": "accounts",
+        "options": {
+          "fields": {
+            "field": [
+              {
+                "name": "name"
+              },
+              {
+                "name": "access_token"
+              },
+              {
+                "name": "id"
+              }
+            ]
+          },
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "limit",
+                "value": "1000"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        -1184,
+        -320
+      ],
+      "id": "3988de5d-d348-48f2-98d6-4b3cf5222f54",
+      "name": "Get all facebook pages",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "YzJJHq01A4nCY8G4",
+          "name": "Facebook Graph n8n Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n\n<html>\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Email</title>\n  <style>\n    :root {\n      font-family: Helvetica, Verdana, Arial;\n      padding: 2rem;\n      max-width: 32rem;\n      margin: auto;\n      background-color: white;\n    }\n\n    @media (prefers-color-scheme: dark) {\n      :root {\n        color: white;\n        background-color: darkslateblue;\n      }\n      \n    }\n    table {\n      border: 2px solid;\n      padding: 0.75rem 1rem;\n      width: 100%;\n    }\n    tr td:first-child {\n      font-weight: bold;\n      text-transform: capitalize;\n      padding-right: 1rem;\n    }\n  </style>\n</head>\n<body style=\"max-width: 32rem; margin: auto\">\n  <div>\n    <!--<img style=\"object-fit: cover; max-width: 32rem; width: 100%;\" height=\"256\" width=\"512\" src=\"https://albornordelta.com/albor-3.jpg\">-->\n    <h1>Nuevo Lead</h1>\n    <p>Se recibió un nuevo lead mediante Krak Real Estate | Cap. Desarrolladores-copy.</p>\n    <table>\n          {{ Object.entries($json)\n          .map(([key,value])=>`\n          <tr>\n            <td style=\"vertical-align: top; padding-right: 1rem;\"><b>${key}</b></td>\n            <td style=\"vertical-align: top;\">${value}</td>\n          </tr>\n          `).join('') }}\n    </table>\n  </div>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        -400
+      ],
+      "id": "e22cf10e-b30d-44c6-bab3-73dd7fe51e97",
+      "name": "HTML1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({\n    \"Nombre\":  $json.data.field_data.full_name,\n    \"Correo\": $json.data.field_data.email,\n    \"Celular\": $json.data?.field_data?.phone_number ?? $json.data?.field_data?.phone ?? '',\n    \"Mensaje\": $json.data.field_data.Mensaje \n  }, null, 2)\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1696,
+        -400
+      ],
+      "id": "6fa7d083-d732-45b1-8b1f-86d852915c2a",
+      "name": "Regroup1"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "=marcelo@krak.com.ar",
+        "subject": "Nuevo Lead",
+        "html": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "ccEmail": "juan@krak.com.ar"
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2144,
+        -400
+      ],
+      "id": "cf77c8ca-26f4-4563-b10d-239dd37995d8",
+      "name": "Send Email3",
+      "webhookId": "979ef2c6-c8d9-4a05-b67e-f1291e1a42e8",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?gid=2058490138#gid=2058490138",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1794431873,
+          "mode": "list",
+          "cachedResultName": "Distribución",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=1794431873"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Origen": "={{ $json.origin_key }}",
+            "Etiquetas": "Clientes Potenciales | Campañas IG FB"
+          },
+          "matchingColumns": [
+            "Origen"
+          ],
+          "schema": [
+            {
+              "id": "Origen",
+              "displayName": "Origen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Agentes",
+              "displayName": "Agentes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Etiquetas",
+              "displayName": "Etiquetas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Emprendimiento",
+              "displayName": "Emprendimiento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Propiedad",
+              "displayName": "Propiedad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1472,
+        400
+      ],
+      "id": "588a35a1-a219-4cf4-9384-38468396702f",
+      "name": "Add to distribution sheet",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtenemos el estado de la última ejecución (es uno solo, usamos .first())\nconst state = $('Get last Lead timestamp & id').first().json;\nconst lastTimestamp = new Date(state.last_lead_time).getTime();\nconst lastLeadId = state.last_lead_id ? state.last_lead_id.toString() : null;\n\nconst newItems = [];\n\n// 2. Recorremos cada entrada (cada entrada es un formulario con sus leads)\nfor (let i = 0; i < $input.all().length; i++) {\n  const item = $input.all()[i];\n\n  // --- CORRECCIÓN CRÍTICA ---\n  // Usamos pairedItem() indicando el índice 'i' para que n8n busque \n  // la página y formulario que dieron origen a ESTE ítem específicamente.\n  \n  const pageData = $('Split Facebook Pages').pairedItem(i).json;\n  const formData = $('Split con Page Data').pairedItem(i).json;\n  \n  const page_name = pageData.name;\n  const page_id = pageData.id;\n  const form_name = formData.name;\n  const form_id = formData.id;\n\n  const origin_key = `${page_name} | ${form_name}`;\n\n  // Filtramos los leads\n  const leads = (item.json.data || []).filter((lead) => {\n    const created = new Date(lead.created_time).getTime();\n    const id = lead.id;\n\n    if (!Number.isFinite(created)) return false;\n    \n    if (created > lastTimestamp) return true;\n    if (created === lastTimestamp && id !== lastLeadId) return true;\n\n    return false;\n  });\n\n  if (leads.length > 0) {\n    newItems.push({\n      json: {\n        page_name: page_name,\n        page_id: page_id,\n        form_name: form_name,\n        form_id: form_id,\n        origin_key: origin_key,\n        origin: \"Facebook\",\n        data: leads \n      }\n    });\n  }\n}\n\nreturn newItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -320
+      ],
+      "id": "1bdc7fa1-5efa-44ac-abe7-d70c579815d4",
+      "name": "Obtener todos los leads desde el último timestamp"
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $('Lead Master Processor').all();\n\nlet maxLead = null;\n\nfor (const item of leads) {\n\n  const lead = item.json.data;\n\n  if (!lead?.created_time) continue;\n\n  const leadDate = new Date(lead.created_time);\n\n  if (!maxLead || leadDate > new Date(maxLead.created_time)) {\n    maxLead = lead;\n  }\n}\n\n// evitar duplicados en la próxima ejecución\nlet nextDate = null;\n\nif (maxLead?.created_time) {\n  nextDate = new Date(maxLead.created_time);\n  nextDate.setSeconds(nextDate.getSeconds() + 1);\n}\n\nreturn [\n  {\n    json: {\n      last_lead_time: nextDate ? nextDate.toISOString() : null,\n      last_lead_id: maxLead?.id || null\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        -592
+      ],
+      "id": "3e381142-3e12-4fb4-a546-3c2c65b8d809",
+      "name": "Get last_lead_time",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}",
+          "mode": "list",
+          "cachedResultName": "Leads de Krak - A quien le llega cada campaña",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 878780245,
+          "mode": "list",
+          "cachedResultName": "workflow_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=878780245"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1408,
+        -320
+      ],
+      "id": "b924ee87-06e6-4e2c-b3bb-71e48295b614",
+      "name": "Get last Lead timestamp & id",
+      "executeOnce": true,
+      "notesInFlow": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "Hay que cambiar luego a workflow_state (ahora está en workflow_state_2\n\nGuarda el id y la hora de la última ejecución en la que se recuperó un lead + 1 segundo."
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}",
+          "mode": "list",
+          "cachedResultName": "Leads de Krak - A quien le llega cada campaña",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 878780245,
+          "mode": "list",
+          "cachedResultName": "workflow_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{{ $env.GOOGLE_SHEETS_MAIN_LEADS_ID }}/edit#gid=878780245"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "last_lead_time": "={{ $('Get last_lead_time').item.json.last_lead_time }}",
+            "row_number": 2,
+            "last_lead_id": "={{ $('Get last_lead_time').item.json.last_lead_id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "last_lead_time",
+              "displayName": "last_lead_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_lead_id",
+              "displayName": "last_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        -592
+      ],
+      "id": "62da8833-2708-4426-9859-5e701c5e8bc7",
+      "name": "Update Last Lead Time & ID",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hRr7CfFqnAWnY9fN",
+          "name": "GS - info@krak.com.ar (WORKSHOP/AGENTES)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -320
+      ],
+      "id": "5309c50d-449c-4b0e-900e-d0a050240eae",
+      "name": "Split Facebook Pages"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        -320
+      ],
+      "id": "5a0eee10-c5d5-4243-b446-8c65b10d5bc7",
+      "name": "Split con Page Data"
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v22.0",
+        "node": "={{ $json.id }}",
+        "edge": "leads",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "limit",
+                "value": "100"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -320
+      ],
+      "id": "f17a4b56-2dca-4e7a-97ec-049a54901730",
+      "name": "Get Last Form Leads",
+      "retryOnFail": true,
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "YzJJHq01A4nCY8G4",
+          "name": "Facebook Graph n8n Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. OBTENCIÓN DE CONFIGURACIÓN DE AGENTES\nconst configNodes = $(\"Get sales representative target\").all();\nconst configMap = {};\n\nconfigNodes.forEach(node => {\n  const data = node.json;\n  configMap[data.Origen] = {\n    agentes: data.Agentes ? data.Agentes.split(',').map(a => a.trim()).filter(a => a) : [],\n    etiquetas: data.Etiquetas ? data.Etiquetas.split(',').map(e => e.trim()) : [],\n    emprendimiento: data.Emprendimiento || \"\",\n    propiedad: data.Propiedad || \"\"\n  };\n});\n\n// 2. MEMORIA ESTÁTICA n8n\nconst workflowStaticData = $getWorkflowStaticData('global');\n\n// 3. PRE-ORDENAMIENTO Y FILTRO DE DUPLICADOS\nlet items = $input.all();\n\n// Ordenamos por fecha primero (ascendente)\nitems.sort((a, b) => {\n  const timeA = new Date(a.json.data?.created_time || a.json.created_time).getTime();\n  const timeB = new Date(b.json.data?.created_time || b.json.created_time).getTime();\n  return timeA - timeB;\n});\n\n// Filtramos duplicados comparando el ID de Facebook\nconst seenIds = new Set();\nconst uniqueItems = items.filter(item => {\n  const leadId = item.json.data?.id || item.json.id;\n  if (seenIds.has(leadId)) {\n    return false; // Es un duplicado, lo eliminamos\n  }\n  seenIds.add(leadId);\n  return true; // Es nuevo, lo mantenemos\n});\n\n// 4. PROCESAMIENTO, NORMALIZACIÓN Y ASIGNACIÓN\nreturn uniqueItems.map((item) => {\n  const leadRaw = item.json;\n  const originKey = leadRaw.origin_key;\n  const config = configMap[originKey];\n  \n  // --- LÓGICA DE AGENTES ---\n  let assignedAgent = \"Sin Agente\";\n  if (config && config.agentes.length > 0) {\n    const lastRep = workflowStaticData[originKey] || null;\n    const lastIndex = config.agentes.indexOf(lastRep);\n    const nextIndex = (lastIndex === -1) ? 0 : (lastIndex + 1) % config.agentes.length;\n    assignedAgent = config.agentes[nextIndex];\n    workflowStaticData[originKey] = assignedAgent;\n  }\n\n  // --- NORMALIZACIÓN (Objeto plano y campos raíz) ---\n  const fieldArray = leadRaw.data?.field_data || [];\n  const fieldData = {};\n  for (const field of fieldArray) {\n    fieldData[field.name] = field.values?.[0] || '';\n  }\n\n  const full_name = fieldData.full_name || fieldData[\"full name\"] || fieldData.first_name || '';\n  const email = fieldData.email || fieldData.e_mail || '';\n  const company_name = fieldData.company_name || '';\n  const phone = fieldData.phone || fieldData.phone_number || fieldData.telefono || '';\n\n  const ignored = [\"full_name\", \"full name\", \"telefono\", \"phone\", \"phone_number\", \"email\", \"company_name\"];\n  const parts = [];\n  for (const key in fieldData) {\n    if (!ignored.includes(key) && fieldData[key]) {\n      parts.push(`${key}: ${fieldData[key]}`);\n    }\n  }\n  const message = parts.join(\"; \");\n\n  return {\n    json: {\n      ...leadRaw, \n      data: {\n        ...leadRaw.data,\n        field_data: fieldData\n      },\n      full_name,\n      phone,\n      email,\n      company_name,\n      message,\n      agent_mail: assignedAgent,\n      tags: config ? config.etiquetas : [],\n      developments: config?.emprendimiento ? [config.emprendimiento] : [],\n      properties: config?.propiedad ? [config.propiedad] : []\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        -400
+      ],
+      "id": "5f6427a1-b5c9-425e-95cb-cd9a09b6a7a5",
+      "name": "Lead Master Processor"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1632,
+        -320
+      ],
+      "id": "9a622ba6-ad50-4b81-b58a-1068727c3dc3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@krak-re.com",
+        "toEmail": "cata@krak.com.ar",
+        "subject": "=[ERROR] Ocurrió un error en Obtención de Leads Facebook",
+        "emailFormat": "text",
+        "text": "=Hola!\n\nOcurrió un error inesperado en la carga de leads, adjunto el link a la ejecución:\n\nMensaje\n{{ $json.execution.error.message }}\nNodo\n{{ $json.execution.lastNodeExecuted }}\nEjecución\n{{ $json.execution.url }}\nVerificar lo antes posible.\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -1408,
+        -832
+      ],
+      "id": "544ea40f-8a7f-4ee6-be38-d466b6e66eff",
+      "name": "Error E-mail",
+      "webhookId": "c831bb8d-aef6-4bb1-8de0-975c5e0c182e",
+      "credentials": {
+        "smtp": {
+          "id": "DIhBOuOpiQXCKYhg",
+          "name": "Hostinger SMTP - Krak RE "
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 📑 Documentación Técnica: Obtención de Leads de Facebook\n\n## 1. Resumen Ejecutivo\nEste workflow es el encargado de la extracción proactiva de prospectos desde la plataforma **Facebook Lead Ads**. Opera mediante una ejecución programada que consulta la **API de Facebook Graph** para identificar formularios activos, extraer los nuevos leads generados desde la última ejecución y enviarlos al procesador central.\n\n---\n\n## 2. Mecanismo de Extracción (Trigger)\n* **Nodo:** `Schedule Trigger`.\n* **Intervalo:** Ejecución periódica programada para sincronizar los datos de Meta con el ecosistema local.\n* **Lógica de Control:** Utiliza los nodos `Get last Lead timestamp & id` y `Update Last Lead Time & ID` para realizar extracciones incrementales, evitando la duplicidad de registros al procesar solo lo nuevo desde la última marca de tiempo almacenada.\n\n---\n\n## 3. Interacción con Facebook Graph API\nEl flujo realiza una serie de llamadas encadenadas para obtener la información completa:\n1.  **Get Forms:** Recupera todos los formularios con estado `ACTIVE` asociados a la cuenta.\n2.  **Get Last Form Leads:** Consulta los leads específicos de cada formulario.\n3.  **Filtrado:** Se aplican parámetros de consulta (`filtering`) para asegurar que solo se traigan datos relevantes y recientes.\n\n---\n\n## 4. Normalización y Procesamiento\nUna vez extraídos los datos de Meta:\n* **Lead Master Processor:** Al igual que en el flujo de Landings, los datos se envían a este sub-workflow para la validación de reglas de negocio.\n* **Store Lead:** Los prospectos se registran en la hoja de Google Sheets *\"Leads de Krak - A quien le llega cada campaña\"*.\n* **Switch de Clasificación:** Permite bifurcar la lógica según el tipo de formulario o campaña detectada en los metadatos de Facebook.\n\n---\n\n## 5. Inventario de Integraciones y Credenciales\n| Servicio | Credencial en n8n | Uso |\n| :--- | :--- | :--- |\n| **Facebook Graph API** | `facebookGraphApi` | Autenticación y lectura de formularios/leads (v22.0). |\n| **Google Sheets** | `GS - info@krak.com.ar` | Almacenamiento y persistencia de marcas de tiempo. |\n| **Error Workflow** | `Ko6x8FPpPxCMAGPR` | Sistema de monitoreo de fallos global. |\n\n---\n\n## 6. Manejo de Errores y Seguridad\n* **Token de Acceso:** El flujo depende de la validez del Access Token de Facebook. Si el token expira, el `Error Workflow` notificará la desconexión.\n* **Resiliencia de API:** Se manejan límites de tasa (rate limits) mediante la paginación y el filtrado por marcas de tiempo en el nodo `Obtener todos los leads`.\n* **Integridad de Datos:** El nodo `Update Last Lead Time & ID` solo se actualiza si la extracción fue exitosa, garantizando que no se pierdan leads en caso de una caída del servidor durante el proceso.\n\n---\n\n## 7. Diagrama de Flujo (Mermaid)\n```mermaid\ngraph TD\n    A[Schedule Trigger] --> B[Get Last Timestamp & ID]\n    B --> C[Facebook: Get Active Forms]\n    C --> D[Facebook: Get Leads from Forms]\n    D --> E[Lead Master Processor]\n    \n    E --> F[Store Lead in Google Sheets]\n    F --> G[Update Last Execution Stats]\n    \n    subgraph Sincronización\n        G\n    end\n\n    style C fill:#4267B2,stroke:#fff,color:#fff\n    style F fill:#bbf,stroke:#333\n    style G fill:#dfd,stroke:#333\n```\n\n## 8. Notas de Mantenimiento\nActualización de API: El flujo está configurado para la versión v22.0 de la Graph API. Revisar compatibilidad ante cambios globales de Meta.\n\nMonitoreo de Tokens: Es vital asegurar que el usuario de sistema en Facebook Business Suite tenga permisos permanentes de lectura de leads.\n\nVentana Operativa: Ajustes en la frecuencia de consulta o en el mapeo de campos deben realizarse de Lunes a Viernes (09:00 - 18:00).",
+        "height": 2320,
+        "width": 2000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3872,
+        -736
+      ],
+      "id": "4d4afa4b-c1e0-4998-8e73-d9a5858a0960",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1632,
+        -832
+      ],
+      "id": "04e90ae8-a0ae-41f3-9cdd-d3ab9aee77e2",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## OBTENCIÓN DE LEADS",
+        "height": 640,
+        "width": 2032,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1696,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "a1b1c93d-2df7-44b3-918c-a7a7a38045a7",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## AVISO DE NUEVA FUENTE DE LEADS\n\n",
+        "height": 448,
+        "width": 976,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        928,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "189d1bd2-f900-443c-b77e-a816d43109ee",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## CARGA EN CRM Y SHEETS\n",
+        "height": 560,
+        "width": 1392,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        944,
+        -608
+      ],
+      "typeVersion": 1,
+      "id": "a90aeb5d-f9d0-40a0-afb9-fa26536e31b8",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## GESTIÓN DE ERRORES",
+        "height": 288,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1696,
+        -944
+      ],
+      "typeVersion": 1,
+      "id": "637b4c68-76f7-44b0-9206-827dc6c86a45",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## BÚSQUEDA DE AGENTES POR PROYECTO",
+        "height": 640,
+        "width": 448,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        -528
+      ],
+      "typeVersion": 1,
+      "id": "68d50b44-c2b2-4e1a-8c1a-a8a19102ae90",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2026-05-07T22:00:36.070-03:00",
+          "Readable date": "May 7th 2026, 10:00:36 pm",
+          "Readable time": "10:00:36 pm",
+          "Day of week": "Thursday",
+          "Year": "2026",
+          "Month": "May",
+          "Day of month": "07",
+          "Hour": "22",
+          "Minute": "00",
+          "Second": "36",
+          "Timezone": "America/Argentina/Buenos_Aires (UTC-03:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Get Forms": {
+      "main": [
+        [
+          {
+            "node": "Split con Page Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split leads out of query": {
+      "main": [
+        [
+          {
+            "node": "Get sales representative target",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Store Lead": {
+      "main": [
+        [
+          {
+            "node": "Get last_lead_time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get sales representative target": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Get the ones that have an agent assigned",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get the ones that don't",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add to distribution sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the ones that have an agent assigned": {
+      "main": [
+        [
+          {
+            "node": "Lead Master Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the ones that don't": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit to Tokko": {
+      "main": [
+        []
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Regroup1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Special Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Special Cases": {
+      "main": [
+        [
+          {
+            "node": "Submit to Tokko",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all facebook pages": {
+      "main": [
+        [
+          {
+            "node": "Split Facebook Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update available form keys": {
+      "main": [
+        []
+      ]
+    },
+    "HTML1": {
+      "main": [
+        [
+          {
+            "node": "Send Email3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Regroup1": {
+      "main": [
+        [
+          {
+            "node": "HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener todos los leads desde el último timestamp": {
+      "main": [
+        [
+          {
+            "node": "Split leads out of query",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update available form keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get last_lead_time": {
+      "main": [
+        [
+          {
+            "node": "Update Last Lead Time & ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get last Lead timestamp & id": {
+      "main": [
+        [
+          {
+            "node": "Get all facebook pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Facebook Pages": {
+      "main": [
+        [
+          {
+            "node": "Get Forms",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split con Page Data": {
+      "main": [
+        [
+          {
+            "node": "Get Last Form Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Form Leads": {
+      "main": [
+        [
+          {
+            "node": "Obtener todos los leads desde el último timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Master Processor": {
+      "main": [
+        [
+          {
+            "node": "Store Lead",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Last Lead Time & ID": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get last Lead timestamp & id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Error E-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveExecutionProgress": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "timeSavedMode": "fixed",
+    "availableInMCP": false,
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": false,
+    "errorWorkflow": "Ko6x8FPpPxCMAGPR"
+  },
+  "versionId": "5af7882b-c31d-448a-9373-0663cc2cc03c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1203683292111d9a2a9723df25ca130b2eea35454b8c54940302a7cc319714c8"
+  },
+  "id": "Rddt0yhsEhoTaZpf",
+  "tags": []
+}
+
