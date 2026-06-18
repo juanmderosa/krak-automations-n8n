@@ -2,8 +2,6 @@
 
 Hub de automatizaciones para gestión integral de leads y comunicaciones en tiempo real para Krak Real Estate.
 
-> ⚠️ **IMPORTANTE**: Este repositorio contiene configuraciones sensibles. Lee [SECURITY.md](./SECURITY.md) antes de hacer commit o compartir archivos.
-
 ---
 
 ## 🔐 Guías de Configuración
